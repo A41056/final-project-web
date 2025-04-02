@@ -9,6 +9,7 @@ export interface Product {
   modified: string;
   categoryIds: string[];
   variants: ProductVariant[];
+  averageRating: number;
 }
 
 export interface ProductVariant {

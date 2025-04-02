@@ -270,97 +270,113 @@ img {
   gap: 20px;
   justify-content: center;
   align-items: center;
-  flex-wrap: nowrap;
-  padding: 20px 0px;
+  flex-wrap: wrap; /* Thay nowrap thành wrap để responsive */
+  padding: 20px 0;
   width: 100%;
+  overflow-x: auto; /* Thêm thanh cuộn ngang nếu cần */
 }
 
 .product-card {
   width: 100%;
+  max-width: 300px; /* Giới hạn chiều rộng tối đa */
+  min-width: 250px; /* Đảm bảo card không quá nhỏ */
   height: auto;
   text-align: left;
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding-bottom: 10px;
+  cursor: pointer;
 }
 
 .product-image {
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 250px; /* Chiều cao cố định cho ảnh */
   background-color: #f0eeed;
+  border-radius: 20px 20px 0 0;
   overflow: hidden;
-  border-radius: 20px;
-  padding: 10px;
-  min-width: 350px;
+  display: block; /* Thay flex thành block để ảnh chiếm toàn bộ không gian */
 }
 
 .product-image img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover; /* Lấp đầy khung, cắt phần thừa */
   object-position: center;
-  max-height: 300px;
+  display: block; /* Đảm bảo ảnh không bị ảnh hưởng bởi flex */
 }
 
-.product-card p {
+.product-name {
   font-weight: 700;
-  font-size: 20px;
-  line-height: 27px;
+  font-size: 16px;
+  line-height: 22px;
+  margin: 10px 10px 0;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .product-rating {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 5px;
-  margin-top: 8px;
+  gap: 8px;
+  margin: 8px 10px 0;
 }
 
 .stars {
   display: flex;
-  gap: 3px;
+  gap: 4px;
   align-items: center;
 }
 
 .stars img {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
+}
+
+.product-rating span {
+  font-size: 14px;
+  color: #666;
 }
 
 .product-pricing {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 12px;
+  margin: 8px 10px;
 }
 
 .discount-price {
   font-weight: 700;
-  font-size: 24px;
+  font-size: 18px;
   color: #000000;
 }
 
 .original-price {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
   color: #00000066;
   text-decoration: line-through;
 }
 
-.discount-percent {
-  font-size: 14px;
-  font-weight: bold;
-  color: #d32f2f;
-}
-
 .discount-wrapper {
   background-color: #ff33331a;
-  padding: 6px 14px;
-  border-radius: 62px;
-  display: inline-block;
-  font-size: 14px;
-  font-weight: bold;
-  color: #ff3333;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discount-percent {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d32f2f;
 }
 
 .wrapper_3 {
@@ -704,7 +720,8 @@ footer {
   width: 40px;
 }
 
-.container {
+.container-detail {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: space-between;
@@ -713,7 +730,7 @@ footer {
   gap: 10px;
 }
 
-.container hr {
+.container-detail hr {
   border: 1px solid #0000001a;
   width: 100%;
 }
@@ -759,7 +776,6 @@ footer {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  flex-direction: column;
   gap: 30px;
 }
 
@@ -872,6 +888,8 @@ footer {
   justify-content: center;
   border: none;
   cursor: pointer;
+  padding: 0;
+  background-color: #f0f0f0;
 }
 
 .minus-button img,
@@ -1437,17 +1455,6 @@ footer {
   justify-content: space-between;
   padding: 15px;
   border-radius: 10px;
-  width: 100%;
-}
-
-.product-image {
-  width: 124px;
-  height: auto;
-}
-
-.product-details {
-  flex: 1;
-  margin-left: 15px;
   width: 100%;
 }
 

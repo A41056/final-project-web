@@ -1,21 +1,61 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Button, Select, DatePicker, message } from "antd";
 import moment from "moment";
 import { useAuthStore } from "@/stores/authStore";
-import { updateUserProfile } from "@/services/accountServices";
 import { UserUpdate } from "@/types/user";
 import { useNavigate } from "react-router-dom";
 import ConfirmModal from "@/components/ConfirmModal";
+import { useMutation } from "react-query";
+import { useQueryClient } from "react-query";
 
 const { Option } = Select;
 
+const USER_API_URL = import.meta.env.USER_API_URL || "http://localhost:6006";
+
+const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const token = useAuthStore.getState().token;
+  const headers = new Headers(options.headers || {});
+  headers.set("Content-Type", "application/json");
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(url, { ...options, headers });
+  if (!response.ok) {
+    if (response.status === 401) {
+      useAuthStore.getState().logout();
+      window.location.href = "/login";
+    }
+    throw new Error(`API error: ${response.status} - ${response.statusText}`);
+  }
+  return response.json();
+};
+
 const Account: React.FC = () => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLogoutModalVisible, setIsLogoutModalVisible] = useState(false);
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Mutation để cập nhật user profile
+  const updateMutation = useMutation({
+    mutationFn: ({ endpoint, data }: { endpoint: string; data: UserUpdate }) =>
+      fetchWithAuth(`${USER_API_URL}${endpoint}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (updatedUser) => {
+      setUser({ ...user!, ...updatedUser }); // Cập nhật store
+      message.success("Cập nhật thông tin thành công");
+      setIsEditMode(false);
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+    onError: () => {
+      message.error("Cập nhật thất bại");
+    },
+  });
 
   useEffect(() => {
     if (user) {
@@ -28,40 +68,28 @@ const Account: React.FC = () => {
   }, [user, form]);
 
   const onFinish = async (values: any) => {
-    console.log("onFinish called with values:", values);
     if (!user) {
       message.error("Không tìm thấy thông tin người dùng");
       return;
     }
 
-    try {
-      setLoading(true);
-      const submitData: UserUpdate = {
-        id: user.id,
-        email: values.email,
-        phone: values.phone,
-        address: values.address,
-        gender: values.gender,
-        age: values.age,
-      };
+    const submitData: UserUpdate = {
+      id: user.id,
+      email: values.email,
+      phone: values.phone,
+      address: values.address,
+      gender: values.gender,
+      age: values.age,
+    };
 
-      await updateUserProfile(submitData);
-      useAuthStore.getState().setUser({
-        ...user,
-        ...submitData,
-      });
-      message.success("Cập nhật thông tin thành công");
-      setIsEditMode(false);
-    } catch (error) {
-      message.error("Cập nhật thất bại");
-    } finally {
-      setLoading(false);
-    }
+    updateMutation.mutate({
+      endpoint: `/users/${user.id}`,
+      data: submitData,
+    });
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    console.log("Edit mode enabled, isEditMode before:", isEditMode);
     setIsEditMode(true);
   };
 
@@ -140,12 +168,18 @@ const Account: React.FC = () => {
         <Form.Item>
           {isEditMode ? (
             <>
-              <Button type="primary" htmlType="submit" loading={loading}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={updateMutation.isLoading}
+                disabled={updateMutation.isLoading}
+              >
                 Lưu
               </Button>
               <Button
                 style={{ marginLeft: 8 }}
                 onClick={() => setIsEditMode(false)}
+                disabled={updateMutation.isLoading}
               >
                 Hủy
               </Button>
@@ -171,7 +205,6 @@ const Account: React.FC = () => {
         </Form.Item>
       </Form>
 
-      {/* Custom ConfirmModal */}
       <ConfirmModal
         visible={isLogoutModalVisible}
         title="Xác nhận đăng xuất"

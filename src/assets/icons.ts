@@ -1,4 +1,3 @@
-// src/assets/icons.ts
 export const icons = {
   mailBox: new URL("../assets/mail-box.png", import.meta.url).href,
   twitter: new URL("../assets/twitter.png", import.meta.url).href,
@@ -20,4 +19,6 @@ export const icons = {
   downArrow: new URL("../assets/down-arrow.png", import.meta.url).href,
   upArrow: new URL("../assets/up-arrow.png", import.meta.url).href,
   verified: new URL("../assets/verified.png", import.meta.url).href,
+  minus: new URL("../assets/minus.png", import.meta.url).href,
+  add: new URL("../assets/add.png", import.meta.url).href,
 };

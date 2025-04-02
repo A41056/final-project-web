@@ -1,7 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { icons } from "../../assets/icons";
 
 interface ProductCardProps {
+  id: string;
   img: string;
   name: string;
   rating: number;
@@ -11,6 +13,7 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
+  id,
   img,
   name,
   rating,
@@ -18,11 +21,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
   originalPrice,
   discountPercent,
 }) => {
+  const navigate = useNavigate();
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating - fullStars >= 0.5;
 
+  const handleClick = () => {
+    navigate(`/products/${id}`);
+  };
+
   return (
-    <div className="product-card">
+    <div
+      className="product-card"
+      onClick={handleClick}
+      style={{ cursor: "pointer" }}
+    >
       <div className="product-image">
         <img src={img} alt={name} />
       </div>

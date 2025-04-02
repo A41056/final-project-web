@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,11 +7,12 @@ import {
 import "./App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Account from "./pages/Account";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import Account from "./pages/Account/Account";
 import { useAuthStore } from "./stores/authStore";
+import { Home } from "./pages/Home/Home";
+import ProductDetail from "./pages/ProductDetail/ProductDetail";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -40,6 +40,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/products/:id" element={<ProductDetail />} />
         </Routes>
         <Footer />
       </div>

@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, Typography } from "antd";
+import { userApi } from "@/config/api";
 
 const { Text } = Typography;
 
@@ -9,16 +10,26 @@ const Login: React.FC = () => {
   const [form] = Form.useForm();
   const { login } = useAuth();
   const navigate = useNavigate();
+  const loginMutation = userApi.useLogin();
 
   const handleSubmit = async (values: { email: string; password: string }) => {
     try {
+      const response = await loginMutation.mutateAsync({
+        Email: values.email,
+        Password: values.password,
+      });
       await login({
         email: values.email,
         password: values.password,
       });
       navigate("/");
-    } catch (error) {
-      alert("Login failed");
+    } catch (error: any) {
+      form.setFields([
+        {
+          name: "password",
+          errors: ["Login failed. Please check your credentials."],
+        },
+      ]);
     }
   };
 
@@ -60,7 +71,12 @@ const Login: React.FC = () => {
           </Form.Item>
 
           <Form.Item {...tailFormItemLayout}>
-            <Button type="primary" htmlType="submit">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loginMutation.isLoading}
+              disabled={loginMutation.isLoading}
+            >
               Login
             </Button>
           </Form.Item>
