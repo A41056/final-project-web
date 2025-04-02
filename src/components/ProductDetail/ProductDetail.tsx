@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Product } from "@/types/product";
 import { icons } from "@/assets/icons";
 
@@ -15,6 +15,60 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   handleQuantityChange,
   handleAddToCart,
 }) => {
+  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+  const [selectedColor, setSelectedColor] = useState<string | null>(
+    product.variants[0].properties.find((p) => p.type === "Color")?.value ||
+      null
+  );
+  const [selectedSize, setSelectedSize] = useState<string | null>(
+    product.variants[0].properties.find((p) => p.type === "Size")?.value || null
+  );
+
+  const handleVariantSelect = (type: string, value: string) => {
+    if (type === "Color") {
+      setSelectedColor(value);
+    } else if (type === "Size") {
+      setSelectedSize(value);
+    }
+
+    const matchedVariant = product.variants.find((variant) =>
+      variant.properties.every(
+        (prop) =>
+          (prop.type === "Color" &&
+            prop.value === (type === "Color" ? value : selectedColor)) ||
+          (prop.type === "Size" &&
+            prop.value === (type === "Size" ? value : selectedSize))
+      )
+    );
+
+    if (matchedVariant) {
+      setSelectedVariant(matchedVariant);
+    }
+  };
+
+  const uniqueColors = Array.from(
+    new Set(
+      product.variants.map(
+        (v) => v.properties.find((p) => p.type === "Color")?.value
+      )
+    )
+  ).filter(Boolean) as string[];
+
+  const availableSizes = Array.from(
+    new Set(
+      product.variants
+        .filter((v) =>
+          v.properties.some(
+            (p) => p.type === "Color" && p.value === selectedColor
+          )
+        )
+        .map((v) => v.properties.find((p) => p.type === "Size")?.value)
+    )
+  ).filter(Boolean) as string[];
+
+  // Tính tổng giá dựa trên variant và số lượng
+  const totalPrice = selectedVariant.price * quantity;
+
   return (
     <div className="product-details">
       <div className="product-images">
@@ -32,7 +86,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         </div>
         <div className="big-box">
           <img
-            src={product.imageFiles[0] || "/images/product-image-4.png"}
+            src={
+              selectedVariant.properties.find((p) => p.type === "Color")
+                ?.image ||
+              product.imageFiles[0] ||
+              "/images/product-image-4.png"
+            }
             alt="Main Image"
           />
         </div>
@@ -48,74 +107,44 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         <p className="title">{product.name}</p>
         <div className="rating">Rating: {product.averageRating || 0}</div>
         <div className="price">
-          Price:{" "}
-          {Math.min(...product.variants.map((v) => v.price)).toLocaleString(
-            "en-US"
-          )}{" "}
+          Price: {(selectedVariant.price * quantity).toLocaleString("en-US")}{" "}
           VND
         </div>
         <p className="description">{product.description}</p>
-        <hr />
         <div className="select-colors">
           <p style={{ color: "#00000099" }}>Select Colors</p>
           <div className="colors-group">
-            {product.variants
-              .filter(
-                (v, index, self) =>
-                  index ===
-                  self.findIndex((t) =>
-                    t.properties.some(
-                      (p) =>
-                        p.type === "Color" &&
-                        p.value ===
-                          v.properties.find((p) => p.type === "Color")?.value
-                    )
-                  )
-              )
-              .map((variant) => {
-                const colorProp = variant.properties.find(
-                  (p) => p.type === "Color"
-                );
-                return (
-                  <div
-                    key={colorProp?.value}
-                    className="color"
-                    style={{ backgroundColor: colorProp?.value || "#000" }}
-                  />
-                );
-              })}
+            {uniqueColors.map((color) => (
+              <div
+                key={color}
+                className={`color ${selectedColor === color ? "selected" : ""}`}
+                style={{
+                  backgroundColor: color,
+                  border: "1px solid #000",
+                  ...(selectedColor === color && { border: "2px solid #000" }),
+                }}
+                onClick={() => handleVariantSelect("Color", color)}
+              />
+            ))}
           </div>
         </div>
-        <hr />
         <div className="choose-size">
           <p style={{ color: "#00000099" }}>Choose Size</p>
           <div className="sizes">
-            {product.variants
-              .filter(
-                (v, index, self) =>
-                  index ===
-                  self.findIndex((t) =>
-                    t.properties.some(
-                      (p) =>
-                        p.type === "Size" &&
-                        p.value ===
-                          v.properties.find((p) => p.type === "Size")?.value
-                    )
-                  )
-              )
-              .map((variant) => {
-                const sizeProp = variant.properties.find(
-                  (p) => p.type === "Size"
-                );
-                return (
-                  <div key={sizeProp?.value} className="size">
-                    {sizeProp?.value}
-                  </div>
-                );
-              })}
+            {availableSizes.map((size) => (
+              <div
+                key={size}
+                className={`size ${selectedSize === size ? "selected" : ""}`}
+                onClick={() => handleVariantSelect("Size", size)}
+              >
+                {size}
+              </div>
+            ))}
           </div>
         </div>
-        <hr />
+        <div className="total-price">
+          <p>Total Price: {totalPrice.toLocaleString("en-US")} VND</p>
+        </div>
         <div className="add-quantity-group">
           <div className="add-quantity">
             <button

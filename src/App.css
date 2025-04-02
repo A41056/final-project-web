@@ -783,19 +783,22 @@ footer {
   grid-column: 1 / 2;
   grid-row: 1 / 2;
   max-height: 170px;
-  max-width: 152px;
+  width: 100%;
+  aspect-ratio: 4/3;
 }
 .box2 {
   grid-column: 1 / 2;
   grid-row: 2 / 3;
   max-height: 170px;
-  max-width: 152px;
+  width: 100%;
+  aspect-ratio: 4/3;
 }
 .box3 {
   grid-column: 1 / 2;
   grid-row: 3 / 4;
   max-height: 170px;
-  max-width: 152px;
+  width: 100%;
+  aspect-ratio: 4/3;
 }
 
 .big-box {
@@ -1247,54 +1250,45 @@ footer {
   cursor: pointer;
 }
 
-.color-circle:nth-child(1) {
-  background-color: #00c12b;
-}
-.color-circle:nth-child(2) {
-  background-color: #f50606;
-}
-.color-circle:nth-child(3) {
-  background-color: #f5dd06;
-}
-.color-circle:nth-child(4) {
-  background-color: #f57906;
-}
-.color-circle:nth-child(5) {
-  background-color: #06caf5;
-}
-.color-circle:nth-child(6) {
-  background-color: #063af5;
-}
-.color-circle:nth-child(7) {
-  background-color: #7d06f5;
-}
-.color-circle:nth-child(8) {
-  background-color: #f506a4;
-}
-.color-circle:nth-child(9) {
-  background-color: #ffffff;
-}
-.color-circle:nth-child(10) {
-  background-color: #000000;
+.choose-variant,
+.select-colors {
+  margin-bottom: 16px;
 }
 
-.color-circle::after {
-  content: "";
-  width: 12px;
-  height: 12px;
-  background-image: url("../src/assets/choose-tick.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity 0.2s ease-in-out;
+.colors-group,
+.variant-options {
+  display: flex;
+  gap: 8px;
 }
 
-.color-circle.selected::after {
-  opacity: 1;
+.color,
+.option {
+  cursor: pointer;
+}
+
+.color {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #000; /* Viền mặc định cho tất cả màu */
+}
+
+.option:not(.color) {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.color.selected,
+.option.selected {
+  border: 2px solid #000 !important; /* Viền nổi bật khi chọn */
+}
+
+.total-price {
+  margin-top: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
 }
 
 .size-items {
