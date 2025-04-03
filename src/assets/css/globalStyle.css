@@ -1,0 +1,32 @@
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+.slick-slide img {
+  cursor: pointer;
+}
+
+.slick-slide img.active {
+  border: 2px solid black;
+}
+
+.slick-slide img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}
+
+.slick-slider.horizontal-slider .slick-track {
+  display: flex;
+  flex-direction: row;
+}
+
+.slick-slider.horizontal-slider .slick-slide {
+  width: 96px !important;
+  height: 80px !important;
+}
+
+.slick-slider.horizontal-slider .slick-slide img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}

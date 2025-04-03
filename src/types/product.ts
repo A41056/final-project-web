@@ -39,3 +39,13 @@ export interface GetProductsResponse {
   products: Product[];
   totalItems: number;
 }
+
+export interface ProductCardData {
+  id: string;
+  img: string;
+  name: string;
+  rating: number;
+  price: string;
+  originalPrice?: string;
+  discountPercent?: string;
+}

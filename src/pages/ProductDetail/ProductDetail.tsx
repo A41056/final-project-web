@@ -1,38 +1,54 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { fetchWithAuth } from "@/config/api";
-import { Product } from "@/types/product";
-import ProductCard from "@/components/ProductCard";
-import ReviewCard from "@/components/ReviewCard";
-import ProductDetails from "@/components/ProductDetail/ProductDetail";
+import ProductImages from "@/components/ProductImages/ProductImages";
+import ProductInfo from "@/components/ProductInfo/ProductInfo";
+import ProductActions from "@/components/ProductActions/ProductActions";
+import ProductTabs from "@/components/ProductTabs/ProductTabs";
+import RelatedProducts from "@/components/RelatedProduct/RelatedProduct";
+import { ProductCardData } from "@/types/product";
 
 const CATALOG_API_URL =
   import.meta.env.CATALOG_API_URL || "http://localhost:6009";
 
 interface GetProductByIdResponse {
-  product: Product;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    imageFiles: string[];
+    variants: Array<{
+      properties: Array<{ type: string; value: string; image: string | null }>;
+      price: number;
+      stockCount: number;
+    }>;
+    averageRating: number;
+  };
 }
 
 interface ProductResponse {
-  products: Product[];
+  products: Array<{
+    id: string;
+    name: string;
+    imageFiles: string[];
+    variants: Array<{ price: number }>;
+    averageRating: number;
+  }>;
   totalItems: number;
 }
 
-interface ProductCardData {
-  id: string;
-  img: string;
-  name: string;
-  rating: number;
-  price: string;
-  originalPrice?: string;
-  discountPercent?: string;
+interface VariantSelection {
+  [key: string]: string;
 }
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("details");
+  const [selectedImage, setSelectedImage] = useState("");
+  const [selectedVariant, setSelectedVariant] = useState<VariantSelection>({});
 
   const {
     data: productData,
@@ -45,9 +61,7 @@ const ProductDetail: React.FC = () => {
       const url = new URL(`${CATALOG_API_URL}/products/${id}`);
       return fetchWithAuth(url.toString());
     },
-    {
-      enabled: !!id,
-    }
+    { enabled: !!id }
   );
 
   const {
@@ -58,11 +72,7 @@ const ProductDetail: React.FC = () => {
     ["relatedProducts", id],
     async () => {
       const url = new URL(`${CATALOG_API_URL}/products`);
-      const params = {
-        pageNumber: 1,
-        pageSize: 4,
-        isActive: true,
-      };
+      const params = { pageNumber: 1, pageSize: 4, isActive: true };
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           url.searchParams.append(key, value.toString());
@@ -70,15 +80,115 @@ const ProductDetail: React.FC = () => {
       });
       return fetchWithAuth(url.toString());
     },
-    {
-      enabled: !!id,
-    }
+    { enabled: !!id }
   );
 
   const product = productData?.product;
 
+  const allImages = product
+    ? (() => {
+        const variantImages = Array.from(
+          new Set(
+            product.variants
+              .map((v) => v.properties.find((p) => p.type === "Color")?.image)
+              .filter((img): img is string => !!img)
+          )
+        );
+        return variantImages.length > 0 ? variantImages : product.imageFiles;
+      })()
+    : [];
+
+  useEffect(() => {
+    if (product && !selectedImage) {
+      const defaultImage = product.imageFiles[0] || "";
+      setSelectedImage(defaultImage);
+
+      const variantFromUrl: VariantSelection = {};
+      searchParams.forEach((value, key) => {
+        variantFromUrl[key] = value;
+      });
+      setSelectedVariant(variantFromUrl);
+
+      const matchedVariant = product.variants.find((v) =>
+        v.properties.every((prop) => variantFromUrl[prop.type] === prop.value)
+      );
+      if (matchedVariant) {
+        const variantImage = matchedVariant.properties.find(
+          (prop) => prop.image
+        )?.image;
+        setSelectedImage(variantImage || defaultImage);
+      }
+    } else if (product) {
+      const variantFromUrl: VariantSelection = {};
+      searchParams.forEach((value, key) => {
+        variantFromUrl[key] = value;
+      });
+      setSelectedVariant(variantFromUrl);
+    }
+  }, [product, searchParams]);
+
+  const handleImageClick = (image: string) => {
+    setSelectedImage(image);
+
+    if (!product || product.imageFiles.includes(image)) return;
+
+    let matchedProp;
+    for (const variant of product.variants) {
+      matchedProp = variant.properties.find((prop) => prop.image === image);
+      if (matchedProp) break;
+    }
+
+    if (matchedProp) {
+      const newVariant = {
+        ...selectedVariant,
+        [matchedProp.type]: matchedProp.value,
+      };
+      setSelectedVariant(newVariant);
+      setSearchParams(newVariant);
+
+      const matchedVariant = product.variants.find((v) =>
+        v.properties.every((prop) => newVariant[prop.type] === prop.value)
+      );
+      if (matchedVariant) {
+        const variantImage = matchedVariant.properties.find(
+          (prop) => prop.image
+        )?.image;
+        if (variantImage) setSelectedImage(variantImage);
+      }
+    } else {
+      console.warn("No property found for image:", image);
+    }
+  };
+
+  const handleVariantChange = (type: string, value: string) => {
+    const newVariant = { ...selectedVariant, [type]: value };
+    setSelectedVariant(newVariant);
+
+    if (product) {
+      const matchedVariant = product.variants.find((v) =>
+        v.properties.every((prop) => newVariant[prop.type] === prop.value)
+      );
+      if (matchedVariant) {
+        const variantImage = matchedVariant.properties.find(
+          (prop) => prop.image
+        )?.image;
+        if (variantImage) setSelectedImage(variantImage);
+      }
+    }
+
+    setSearchParams(newVariant);
+  };
+
+  const handleQuantityChange = (delta: number) => {
+    setQuantity((prev) => Math.max(1, prev + delta));
+  };
+
+  const handleAddToCart = () => {
+    console.log(`Added ${quantity} of ${product?.name} to cart`);
+  };
+
   const transformProductData = (
-    products: Product[] | undefined
+    products: ProductResponse["products"] | undefined
   ): ProductCardData[] => {
     if (!Array.isArray(products)) {
       console.error("Related products is not an array:", products);
@@ -93,7 +203,6 @@ const ProductDetail: React.FC = () => {
         const maxPrice = Math.max(...prices);
         const priceRange =
           prices.length > 1 ? `${minPrice} - ${maxPrice}` : `${minPrice}`;
-
         return {
           id: p.id,
           img: p.imageFiles[0] || "",
@@ -106,180 +215,84 @@ const ProductDetail: React.FC = () => {
 
   const relatedProducts = transformProductData(relatedProductsData?.products);
 
-  const handleTabClick = (tab: string) => {
-    setActiveTab(tab);
-  };
-
-  const handleQuantityChange = (delta: number) => {
-    setQuantity((prev) => Math.max(1, prev + delta));
-  };
-
-  const handleAddToCart = () => {
-    console.log(`Added ${quantity} of ${product?.name} to cart`);
-  };
-
-  if (productLoading) return <div>Loading product details...</div>;
+  if (productLoading)
+    return <div className="text-center">Loading product details...</div>;
   if (productError)
-    return <div>Error loading product: {productError.message}</div>;
-  if (!product) return <div>Product not found</div>;
+    return (
+      <div className="text-center text-red-500">
+        Error loading product: {productError.message}
+      </div>
+    );
+  if (!product) return <div className="text-center">Product not found</div>;
 
   return (
-    <div className="container-detail">
-      <hr />
+    <div className="container-detail flex flex-col items-center justify-center px-4 md:px-24 py-5 gap-2.5 max-w-full">
+      <hr className="my-4 border-t border-gray-200 w-full" />
 
-      <ul className="navigate-group">
+      <ul className="navigate-group flex self-start gap-7 text-gray-600 cursor-pointer py-5">
         <li>
-          <a href="/home" className="hover:text-black">
+          <a
+            href="/home"
+            className="hover:text-black text-gray-600 no-underline"
+          >
             Home
           </a>
-          <span className="mx-2 text-gray-500"></span>
+          <span className="mx-2">/</span>
         </li>
         <li>
-          <a href="#" className="hover:text-black">
+          <a href="#" className="hover:text-black text-gray-600 no-underline">
             Shop
           </a>
-          <span className="mx-2 text-gray-500"></span>
+          <span className="mx-2">/</span>
         </li>
         <li>
-          <a href="#" className="hover:text-black">
+          <a href="#" className="hover:text-black text-gray-600 no-underline">
             Men
           </a>
-          <span className="mx-2 text-gray-500"></span>
+          <span className="mx-2">/</span>
         </li>
         <li>
-          <a href="#" className="hover:text-black">
+          <a href="#" className="hover:text-black text-gray-600 no-underline">
             T-shirts
           </a>
         </li>
       </ul>
 
-      <ProductDetails
-        product={product}
-        quantity={quantity}
-        handleQuantityChange={handleQuantityChange}
-        handleAddToCart={handleAddToCart}
+      <div className="product-details flex flex-col md:flex-row items-start justify-start gap-7 mb-8 w-full">
+        <ProductImages
+          allImages={allImages}
+          selectedImage={selectedImage}
+          onImageClick={handleImageClick}
+        />
+        <div className="product-detail flex-1 min-h-[700px] flex flex-col justify-between w-full md:w-1/2">
+          <ProductInfo
+            name={product.name}
+            description={product.description}
+            variants={product.variants}
+            selectedVariant={selectedVariant}
+            onVariantChange={handleVariantChange}
+          />
+          <ProductActions
+            variants={product.variants}
+            selectedVariant={selectedVariant}
+            quantity={quantity}
+            onQuantityChange={handleQuantityChange}
+            onAddToCart={handleAddToCart}
+          />
+        </div>
+      </div>
+
+      <ProductTabs
+        description={product.description}
+        activeTab={activeTab}
+        onTabClick={setActiveTab}
       />
 
-      <div className="tabs">
-        <button
-          className={`tab-button ${activeTab === "details" ? "active" : ""}`}
-          onClick={() => handleTabClick("details")}
-        >
-          Product Details
-        </button>
-        <button
-          className={`tab-button ${activeTab === "reviews" ? "active" : ""}`}
-          onClick={() => handleTabClick("reviews")}
-        >
-          Rating & Reviews
-        </button>
-        <button
-          className={`tab-button ${activeTab === "faqs" ? "active" : ""}`}
-          onClick={() => handleTabClick("faqs")}
-        >
-          FAQs
-        </button>
-      </div>
-
-      <div className="tab-content">
-        <div
-          className={`tab-panel ${activeTab === "details" ? "active" : ""}`}
-          id="details"
-        >
-          <p>{product.description || "Thông tin chi tiết về sản phẩm..."}</p>
-        </div>
-        <div
-          className={`tab-panel ${activeTab === "reviews" ? "active" : ""}`}
-          id="reviews"
-        >
-          <div className="all-review-buttons">
-            <div className="all-review-title">
-              <p style={{ fontSize: "24px", fontWeight: 700 }}>
-                All Reviews{" "}
-                <span
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: 400,
-                    color: "#00000099",
-                  }}
-                >
-                  (451)
-                </span>
-              </p>
-            </div>
-            <div className="all-review-button">
-              <div className="filter-button">
-                <img src="/images/filter.png" alt="Filter" />
-              </div>
-              <div className="filter-latest">
-                Latest
-                <img
-                  src="/images/down-arrow.png"
-                  alt="Dropdown"
-                  style={{
-                    width: "16px",
-                    height: "16px",
-                    objectFit: "contain",
-                  }}
-                />
-              </div>
-              <div className="write-review-button">Write a Review</div>
-            </div>
-          </div>
-          <div id="reviews-container">
-            <ReviewCard
-              rating={5}
-              reviewerName="John Doe"
-              isVerified={true}
-              content="Great product, highly recommend!"
-            />
-          </div>
-          <div className="load-more">
-            <button>
-              <p>Load More Reviews</p>
-            </button>
-          </div>
-        </div>
-        <div
-          className={`tab-panel ${activeTab === "faqs" ? "active" : ""}`}
-          id="faqs"
-        >
-          <p>Các câu hỏi thường gặp...</p>
-        </div>
-      </div>
-
-      <div className="you-might-also-like-group">
-        <p
-          style={{
-            fontWeight: 700,
-            fontSize: "48px",
-            lineHeight: "57.6px",
-            textAlign: "center",
-          }}
-        >
-          You might also like
-        </p>
-        <div id="you-might-also-like">
-          {relatedLoading ? (
-            <p>Loading related products...</p>
-          ) : relatedError ? (
-            <p>Error loading related products: {relatedError.message}</p>
-          ) : (
-            relatedProducts.map((product, index) => (
-              <ProductCard
-                key={index}
-                id={product.id}
-                img={product.img}
-                name={product.name}
-                rating={product.rating}
-                price={product.price}
-                originalPrice={product.originalPrice}
-                discountPercent={product.discountPercent}
-              />
-            ))
-          )}
-        </div>
-      </div>
+      <RelatedProducts
+        relatedProducts={relatedProducts}
+        isLoading={relatedLoading}
+        error={relatedError}
+      />
     </div>
   );
 };
