@@ -10,6 +10,7 @@ interface ProductActionsProps {
   quantity: number;
   onQuantityChange: (delta: number) => void;
   onAddToCart: () => void;
+  isAddingToCart?: boolean;
 }
 
 const ProductActions: React.FC<ProductActionsProps> = ({
@@ -18,6 +19,7 @@ const ProductActions: React.FC<ProductActionsProps> = ({
   quantity,
   onQuantityChange,
   onAddToCart,
+  isAddingToCart,
 }) => {
   const getTotalPrice = () => {
     const selectedVar = variants.find((v) =>
@@ -40,6 +42,7 @@ const ProductActions: React.FC<ProductActionsProps> = ({
           <button
             className="minus-button w-6 h-6 flex items-center justify-center bg-gray-200 border-none cursor-pointer"
             onClick={() => onQuantityChange(-1)}
+            disabled={isAddingToCart}
           >
             -
           </button>
@@ -47,6 +50,7 @@ const ProductActions: React.FC<ProductActionsProps> = ({
           <button
             className="add-button w-6 h-6 flex items-center justify-center bg-gray-200 border-none cursor-pointer"
             onClick={() => onQuantityChange(1)}
+            disabled={isAddingToCart}
           >
             +
           </button>
@@ -54,8 +58,9 @@ const ProductActions: React.FC<ProductActionsProps> = ({
         <button
           className="add-to-card bg-black text-white w-96 h-12 rounded-full px-12 cursor-pointer"
           onClick={onAddToCart}
+          disabled={isAddingToCart}
         >
-          Add to Cart
+          {isAddingToCart ? "Adding..." : "Add to Cart"}
         </button>
       </div>
     </div>

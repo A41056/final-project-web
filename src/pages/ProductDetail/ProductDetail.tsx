@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "react-query";
-import { fetchWithAuth } from "@/config/api";
+import { fetchWithAuth, basketApi } from "@/config/api";
 import ProductImages from "@/components/ProductImages/ProductImages";
 import ProductInfo from "@/components/ProductInfo/ProductInfo";
 import ProductActions from "@/components/ProductActions/ProductActions";
 import ProductTabs from "@/components/ProductTabs/ProductTabs";
 import RelatedProducts from "@/components/RelatedProduct/RelatedProduct";
 import { ProductCardData } from "@/types/product";
+import { useAuthStore } from "@/stores/authStore";
+import { useCartStore } from "@/stores/cartStore";
 
 const CATALOG_API_URL =
   import.meta.env.CATALOG_API_URL || "http://localhost:6009";
@@ -42,6 +44,34 @@ interface VariantSelection {
   [key: string]: string;
 }
 
+export interface CartItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+}
+
+interface StoreBasketRequest {
+  cart: {
+    userId: string;
+    items: CartItem[];
+  };
+}
+
+interface StoreBasketResponse {
+  userId: string;
+}
+
+const getUserFromLocalStorage = (): { id: string } | null => {
+  const userData = localStorage.getItem("user");
+  if (!userData) return null;
+  try {
+    return JSON.parse(userData);
+  } catch {
+    return null;
+  }
+};
+
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,7 +79,7 @@ const ProductDetail: React.FC = () => {
   const [activeTab, setActiveTab] = useState("details");
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedVariant, setSelectedVariant] = useState<VariantSelection>({});
-
+  const { addItem } = useCartStore();
   const {
     data: productData,
     isLoading: productLoading,
@@ -82,6 +112,8 @@ const ProductDetail: React.FC = () => {
     },
     { enabled: !!id }
   );
+
+  const { mutate: addToCart, isLoading: isAddingToCart } = basketApi.usePost();
 
   const product = productData?.product;
 
@@ -184,7 +216,52 @@ const ProductDetail: React.FC = () => {
   };
 
   const handleAddToCart = () => {
-    console.log(`Added ${quantity} of ${product?.name} to cart`);
+    if (!product || !id) return;
+
+    const user = getUserFromLocalStorage();
+    if (!user || !user.id) {
+      useAuthStore.getState().logout();
+      window.location.href = "/login";
+      return;
+    }
+
+    const selectedVar =
+      product.variants.find((v) =>
+        v.properties.every((prop) => selectedVariant[prop.type] === prop.value)
+      ) || product.variants[0];
+
+    const cartItem: CartItem = {
+      productId: id,
+      productName: product.name,
+      quantity,
+      price: selectedVar.price,
+    };
+
+    const requestData: StoreBasketRequest = {
+      cart: {
+        userId: user.id,
+        items: [cartItem],
+      },
+    };
+
+    addToCart(
+      { endpoint: "/basket", data: requestData },
+      {
+        onSuccess: () => {
+          console.log(
+            `Added ${quantity} of ${product.name} to cart for user ${user.id}`
+          );
+          addItem(quantity);
+          setQuantity(1);
+        },
+        onError: (error) => {
+          console.error(
+            "Error adding to cart:",
+            error instanceof Error ? error.message : String(error)
+          );
+        },
+      }
+    );
   };
 
   const transformProductData = (
@@ -231,30 +308,39 @@ const ProductDetail: React.FC = () => {
 
       <ul className="navigate-group flex self-start gap-7 text-gray-600 cursor-pointer py-5">
         <li>
-          <a
-            href="/home"
+          <Link
+            to="/home"
             className="hover:text-black text-gray-600 no-underline"
           >
             Home
-          </a>
+          </Link>
           <span className="mx-2">/</span>
         </li>
         <li>
-          <a href="#" className="hover:text-black text-gray-600 no-underline">
+          <Link
+            to="/shop"
+            className="hover:text-black text-gray-600 no-underline"
+          >
             Shop
-          </a>
+          </Link>
           <span className="mx-2">/</span>
         </li>
         <li>
-          <a href="#" className="hover:text-black text-gray-600 no-underline">
+          <Link
+            to="/shop/men"
+            className="hover:text-black text-gray-600 no-underline"
+          >
             Men
-          </a>
+          </Link>
           <span className="mx-2">/</span>
         </li>
         <li>
-          <a href="#" className="hover:text-black text-gray-600 no-underline">
+          <Link
+            to="/shop/men/t-shirts"
+            className="hover:text-black text-gray-600 no-underline"
+          >
             T-shirts
-          </a>
+          </Link>
         </li>
       </ul>
 
@@ -278,6 +364,7 @@ const ProductDetail: React.FC = () => {
             quantity={quantity}
             onQuantityChange={handleQuantityChange}
             onAddToCart={handleAddToCart}
+            isAddingToCart={isAddingToCart}
           />
         </div>
       </div>
