@@ -2,42 +2,33 @@ import React, { useEffect } from "react";
 import { icons } from "../../assets/icons";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
-import { useCartStore } from "@/stores/cartStore";
+import { CartResponse, useCartStore } from "@/stores/cartStore";
 import { basketApi } from "@/config/api";
-import { CartItem } from "@/pages/ProductDetail/ProductDetail";
 import { UserInfo } from "@/types/user";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
-  const { itemCount, setCart } = useCartStore();
+  const { itemCount, mergeCart, hasMergedServerCart } = useCartStore();
   const userString = localStorage.getItem("user");
   const user: UserInfo | null = userString ? JSON.parse(userString) : null;
-  console.log("Parsed user:", user);
 
-  const { data: cartData } = basketApi.useGet(
-    user?.id ? `/basket/${user.id}` : ""
+  const { data: cartData } = basketApi.useGet<CartResponse>(
+    user?.id ? `/basket/${user.id}` : "",
+    { enabled: !!user?.id }
   );
 
   useEffect(() => {
-    if (cartData && cartData.items) {
-      const totalItems = cartData.items.reduce(
-        (sum: number, item: CartItem) => sum + item.quantity,
-        0
-      );
-      setCart(totalItems);
+    if (isAuthenticated && cartData?.cart && !hasMergedServerCart) {
+      mergeCart(cartData.cart);
     }
-  }, [cartData, setCart]);
+  }, [isAuthenticated, cartData, mergeCart, hasMergedServerCart]);
 
   return (
     <>
       {!isAuthenticated && (
         <aside className="promo-bar">
           <p>Sign up and get 20% off to your first order.</p>
-          <Link
-            to="/register"
-            aria-label="Go to register"
-            className="text-white !important"
-          >
+          <Link to="/register" aria-label="Go to register" className="text-white">
             Sign Up Now
           </Link>
         </aside>
@@ -50,7 +41,6 @@ const Navbar: React.FC = () => {
                 SHOP.CO
               </Link>
             </li>
-
             <li className="nav_links">
               <ul>
                 <li className="dropdown">
@@ -59,18 +49,11 @@ const Navbar: React.FC = () => {
                     <img src={icons.downArrow} alt="Expand shop menu" />
                   </Link>
                 </li>
-                <li>
-                  <Link to="#">On Sale</Link>
-                </li>
-                <li>
-                  <Link to="#">New Arrivals</Link>
-                </li>
-                <li>
-                  <Link to="#">Brands</Link>
-                </li>
+                <li><Link to="#">On Sale</Link></li>
+                <li><Link to="#">New Arrivals</Link></li>
+                <li><Link to="#">Brands</Link></li>
               </ul>
             </li>
-
             <li className="search">
               <form>
                 <button type="submit">
@@ -84,7 +67,6 @@ const Navbar: React.FC = () => {
                 />
               </form>
             </li>
-
             <li className="user_actions">
               <Link to="/cart" aria-label="View Cart" className="relative">
                 <img src={icons.cart} alt="Cart" />

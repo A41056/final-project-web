@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/stores/authStore";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useQuery, useMutation, useQueryClient, UseQueryOptions } from "react-query";
 
 const USER_API_URL = import.meta.env.USER_API_URL || "http://localhost:6006";
 const CATALOG_API_URL =
@@ -126,8 +126,8 @@ export const userApi = {
 
 // Catalog API with React Query
 export const catalogApi = {
-  useGet: (endpoint: string, params?: Record<string, any>) =>
-    useQuery({
+  useGet: <TData>(endpoint: string, params?: Record<string, any>, options?: UseQueryOptions<TData>) =>
+    useQuery<TData>({
       queryKey: ["catalog", endpoint, params],
       queryFn: () => {
         const url = new URL(`${CATALOG_API_URL}${endpoint}`);
@@ -142,6 +142,7 @@ export const catalogApi = {
         }
         return fetchWithAuth(url.toString());
       },
+      ...options,
     }),
 
   usePost: () => {
@@ -226,10 +227,11 @@ export const orderApi = {
 
 // Basket API with React Query
 export const basketApi = {
-  useGet: (endpoint: string) =>
-    useQuery({
+  useGet: <TData>(endpoint: string, options?: UseQueryOptions<TData>) =>
+    useQuery<TData>({
       queryKey: ["basket", endpoint],
       queryFn: () => fetchWithAuth(`${BASKET_API_URL}${endpoint}`),
+      ...options,
     }),
 
   usePost: () => {

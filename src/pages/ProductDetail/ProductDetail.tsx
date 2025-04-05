@@ -9,12 +9,12 @@ import ProductTabs from "@/components/ProductTabs/ProductTabs";
 import RelatedProducts from "@/components/RelatedProduct/RelatedProduct";
 import { ProductCardData } from "@/types/product";
 import { useAuthStore } from "@/stores/authStore";
-import { useCartStore } from "@/stores/cartStore";
+import { useCartStore, CartItem } from "@/stores/cartStore";
 
 const CATALOG_API_URL =
   import.meta.env.CATALOG_API_URL || "http://localhost:6009";
 
-interface GetProductByIdResponse {
+export interface GetProductByIdResponse {
   product: {
     id: string;
     name: string;
@@ -44,22 +44,11 @@ interface VariantSelection {
   [key: string]: string;
 }
 
-export interface CartItem {
-  productId: string;
-  productName: string;
-  quantity: number;
-  price: number;
-}
-
 interface StoreBasketRequest {
   cart: {
     userId: string;
     items: CartItem[];
   };
-}
-
-interface StoreBasketResponse {
-  userId: string;
 }
 
 const getUserFromLocalStorage = (): { id: string } | null => {
@@ -80,6 +69,8 @@ const ProductDetail: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState("");
   const [selectedVariant, setSelectedVariant] = useState<VariantSelection>({});
   const { addItem } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
+
   const {
     data: productData,
     isLoading: productLoading,
@@ -113,7 +104,7 @@ const ProductDetail: React.FC = () => {
     { enabled: !!id }
   );
 
-  const { mutate: addToCart, isLoading: isAddingToCart } = basketApi.usePost();
+  const { mutate: syncCartWithServer, isLoading: isSyncingCart } = basketApi.usePost();
 
   const product = productData?.product;
 
@@ -217,51 +208,47 @@ const ProductDetail: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!product || !id) return;
-
-    const user = getUserFromLocalStorage();
-    if (!user || !user.id) {
-      useAuthStore.getState().logout();
-      window.location.href = "/login";
-      return;
-    }
-
+  
     const selectedVar =
       product.variants.find((v) =>
         v.properties.every((prop) => selectedVariant[prop.type] === prop.value)
       ) || product.variants[0];
-
+  
     const cartItem: CartItem = {
       productId: id,
       productName: product.name,
       quantity,
       price: selectedVar.price,
+      variant: selectedVar, // Include the full variant
     };
-
-    const requestData: StoreBasketRequest = {
-      cart: {
-        userId: user.id,
-        items: [cartItem],
-      },
-    };
-
-    addToCart(
-      { endpoint: "/basket", data: requestData },
-      {
-        onSuccess: () => {
-          console.log(
-            `Added ${quantity} of ${product.name} to cart for user ${user.id}`
-          );
-          addItem(quantity);
-          setQuantity(1);
+  
+    addItem(cartItem);
+  
+    const user = getUserFromLocalStorage();
+    if (isAuthenticated && user?.id) {
+      const requestData: StoreBasketRequest = {
+        cart: {
+          userId: user.id,
+          items: [cartItem],
         },
-        onError: (error) => {
-          console.error(
-            "Error adding to cart:",
-            error instanceof Error ? error.message : String(error)
-          );
-        },
-      }
-    );
+      };
+  
+      syncCartWithServer(
+        { endpoint: "/basket", data: requestData },
+        {
+          onSuccess: () => {
+            console.log(`Synced ${quantity} of ${product.name} to server cart for user ${user.id}`);
+          },
+          onError: (error) => {
+            console.error("Error syncing cart with server:", error instanceof Error ? error.message : String(error));
+          },
+        }
+      );
+    } else {
+      console.log(`Added ${quantity} of ${product.name} to local cart (user not logged in)`);
+    }
+  
+    setQuantity(1);
   };
 
   const transformProductData = (
@@ -364,7 +351,7 @@ const ProductDetail: React.FC = () => {
             quantity={quantity}
             onQuantityChange={handleQuantityChange}
             onAddToCart={handleAddToCart}
-            isAddingToCart={isAddingToCart}
+            isAddingToCart={isSyncingCart} // Use isSyncingCart instead of isAddingToCart
           />
         </div>
       </div>

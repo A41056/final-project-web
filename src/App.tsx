@@ -13,6 +13,7 @@ import Account from "./pages/Account/Account";
 import { useAuthStore } from "./stores/authStore";
 import { Home } from "./pages/Home/Home";
 import ProductDetail from "./pages/ProductDetail/ProductDetail";
+import Cart from "./pages/Cart/Cart";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -40,6 +41,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/cart" element={<Cart />} />
+
           <Route path="/products/:id" element={<ProductDetail />} />
         </Routes>
         <Footer />
