@@ -1,22 +1,26 @@
-// Cart.tsx
 import React from "react";
 import { useCartStore, CartItem as CartItemType } from "@/stores/cartStore";
+import { useAuthStore } from "@/stores/authStore";
 import CartBreadcrumb from "@/components/Cart/CartBreadcrumb";
 import CartItem from "@/components/Cart/CartItem";
 import CartSummary from "@/components/Cart/CartSummary";
-import { Empty } from "antd";
+import { Empty, message } from "antd";
+import { basketApi } from "@/config/api";
 
 const Cart: React.FC = () => {
   const { cart, itemCount, addItem, setCart } = useCartStore();
+  const { user } = useAuthStore();
+  const postBasket = basketApi.usePost();
 
   const getVariantKey = (item: CartItemType) =>
     `${item.productId}-${JSON.stringify(item.variant?.properties || [])}`;
 
   const handleQuantityChange = (productId: string, quantity: number) => {
-    const item = cart?.items.find((i) => getVariantKey(i) === getVariantKey({
-      productId,
-      variant: i.variant
-    } as CartItemType));
+    const item = cart?.items.find((i) =>
+      getVariantKey(i) === getVariantKey({
+        productId,
+        variant: i.variant
+      } as CartItemType));
     if (item) {
       addItem({ ...item, quantity: quantity - item.quantity });
     }
@@ -24,7 +28,6 @@ const Cart: React.FC = () => {
 
   const handleRemove = (productId: string) => {
     if (cart) {
-      // Find the item to remove by matching the variant key
       const itemToRemove = cart.items.find((i) => i.productId === productId);
       if (!itemToRemove) return;
 
@@ -40,8 +43,48 @@ const Cart: React.FC = () => {
     }
   };
 
-  const handleCheckout = () => {
-    console.log("Proceeding to checkout...");
+  const handleCheckout = async () => {
+    if (!cart || !user) {
+      message.error("User not logged in or cart is empty.");
+      return;
+    }
+
+    const basketCheckoutDto = {
+      UserId: user.id,
+      CustomerId: user.id, // Assuming customer ID is same as user ID; adjust if needed
+      UserName: user.username || "",
+      FirstName: user.firstName || "",
+      LastName: user.lastName || "",
+      EmailAddress: user.email || "",
+      AddressLine: "So 82, Pho Moi", // Placeholder; update with actual address if available
+      Country: "VietNam", // Placeholder; update with actual country if available
+      Items: cart.items.map((item) => ({
+        ProductId: item.productId,
+        Quantity: item.quantity,
+        UnitPrice: item.price / 100, // Convert cents to dollars
+        VariantProperties: item.variant?.properties?.map((prop) => ({
+          Type: prop.type,
+          Value: prop.value,
+          Image: prop.image || null,
+        })) || [],
+      })),
+    };
+
+    try {
+      const response = await postBasket.mutateAsync({
+        endpoint: "/basket/checkout",
+        data: { BasketCheckoutDto: basketCheckoutDto },
+      });
+      if (response.IsSuccess) {
+        message.success("Checkout successful!");
+        //setCart(null); // Clear the cart on successful checkout
+      } else {
+        message.error("Checkout failed. Please try again.");
+      }
+    } catch (error) {
+      message.error("An error occurred during checkout.");
+      console.error("Checkout error:", error);
+    }
   };
 
   return (
