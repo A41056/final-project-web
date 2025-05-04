@@ -14,6 +14,7 @@ import { useAuthStore } from "./stores/authStore";
 import { Home } from "./pages/Home/Home";
 import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import Cart from "./pages/Cart/Cart";
+import ConfirmPayment from "./components/ConfirmPayment/ConfirmPayment";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -42,6 +43,7 @@ function App() {
             }
           />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/confirm-payment" element={<ConfirmPayment />} />
 
           <Route path="/products/:id" element={<ProductDetail />} />
         </Routes>

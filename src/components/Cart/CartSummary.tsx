@@ -24,12 +24,12 @@ const CartSummary: React.FC<CartSummaryProps> = ({ totalItems, totalPrice, onChe
         <hr className="my-3 border-t border-gray-300" />
         <div className="flex justify-between text-base md:text-lg font-semibold">
           <span>Total:</span>
-          <span>${(totalPrice / 100).toFixed(2)}</span>
+          <span>${(totalPrice)}</span>
         </div>
       </div>
       <Button
         type="primary"
-        size="middle" // Changed from large to middle
+        size="middle"
         className="w-full md:w-auto bg-black border-none"
         onClick={onCheckout}
       >

@@ -67,7 +67,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, onQuantityChange, onRemove })
             size="small"
           />
           <span className="text-xs font-semibold">
-            ${((item.price * item.quantity) / 100).toFixed(2)}
+            ${((item.price * item.quantity))}
           </span>
           <Button
             type="link"
