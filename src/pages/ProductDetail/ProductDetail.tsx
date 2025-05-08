@@ -10,6 +10,7 @@ import RelatedProducts from "@/components/RelatedProduct/RelatedProduct";
 import { ProductCardData } from "@/types/product";
 import { useAuthStore } from "@/stores/authStore";
 import { useCartStore, CartItem } from "@/stores/cartStore";
+import Breadcrumb from "@/components/Breadcrumb/Breadcrumb";
 
 const CATALOG_API_URL =
   import.meta.env.CATALOG_API_URL || "http://localhost:6009";
@@ -20,6 +21,7 @@ export interface GetProductByIdResponse {
     name: string;
     description: string;
     imageFiles: string[];
+    categoryIds: string[];
     variants: Array<{
       properties: Array<{ type: string; value: string; image: string | null }>;
       price: number;
@@ -104,7 +106,8 @@ const ProductDetail: React.FC = () => {
     { enabled: !!id }
   );
 
-  const { mutate: syncCartWithServer, isLoading: isSyncingCart } = basketApi.usePost();
+  const { mutate: syncCartWithServer, isLoading: isSyncingCart } =
+    basketApi.usePost();
 
   const product = productData?.product;
 
@@ -113,7 +116,7 @@ const ProductDetail: React.FC = () => {
         const variantImages = Array.from(
           new Set(
             product.variants
-              .map((v) => v.properties.find((p) => p.type === "Color")?.image)
+              .map((v) => v.properties[0]?.image)
               .filter((img): img is string => !!img)
           )
         );
@@ -136,9 +139,7 @@ const ProductDetail: React.FC = () => {
         v.properties.every((prop) => variantFromUrl[prop.type] === prop.value)
       );
       if (matchedVariant) {
-        const variantImage = matchedVariant.properties.find(
-          (prop) => prop.image
-        )?.image;
+        const variantImage = matchedVariant.properties[0]?.image;
         setSelectedImage(variantImage || defaultImage);
       }
     } else if (product) {
@@ -157,8 +158,10 @@ const ProductDetail: React.FC = () => {
 
     let matchedProp;
     for (const variant of product.variants) {
-      matchedProp = variant.properties.find((prop) => prop.image === image);
-      if (matchedProp) break;
+      if (variant.properties[0]?.image === image) {
+        matchedProp = variant.properties[0];
+        break;
+      }
     }
 
     if (matchedProp) {
@@ -173,9 +176,7 @@ const ProductDetail: React.FC = () => {
         v.properties.every((prop) => newVariant[prop.type] === prop.value)
       );
       if (matchedVariant) {
-        const variantImage = matchedVariant.properties.find(
-          (prop) => prop.image
-        )?.image;
+        const variantImage = matchedVariant.properties[0]?.image;
         if (variantImage) setSelectedImage(variantImage);
       }
     } else {
@@ -192,9 +193,7 @@ const ProductDetail: React.FC = () => {
         v.properties.every((prop) => newVariant[prop.type] === prop.value)
       );
       if (matchedVariant) {
-        const variantImage = matchedVariant.properties.find(
-          (prop) => prop.image
-        )?.image;
+        const variantImage = matchedVariant.properties[0]?.image;
         if (variantImage) setSelectedImage(variantImage);
       }
     }
@@ -208,12 +207,12 @@ const ProductDetail: React.FC = () => {
 
   const handleAddToCart = () => {
     if (!product || !id) return;
-  
+
     const selectedVar =
       product.variants.find((v) =>
         v.properties.every((prop) => selectedVariant[prop.type] === prop.value)
       ) || product.variants[0];
-  
+
     const cartItem: CartItem = {
       productId: id,
       productName: product.name,
@@ -221,9 +220,9 @@ const ProductDetail: React.FC = () => {
       price: selectedVar.price,
       variant: selectedVar, // Include the full variant
     };
-  
+
     addItem(cartItem);
-  
+
     const user = getUserFromLocalStorage();
     if (isAuthenticated && user?.id) {
       const requestData: StoreBasketRequest = {
@@ -232,22 +231,29 @@ const ProductDetail: React.FC = () => {
           items: [cartItem],
         },
       };
-  
+
       syncCartWithServer(
         { endpoint: "/basket", data: requestData },
         {
           onSuccess: () => {
-            console.log(`Synced ${quantity} of ${product.name} to server cart for user ${user.id}`);
+            console.log(
+              `Synced ${quantity} of ${product.name} to server cart for user ${user.id}`
+            );
           },
           onError: (error) => {
-            console.error("Error syncing cart with server:", error instanceof Error ? error.message : String(error));
+            console.error(
+              "Error syncing cart with server:",
+              error instanceof Error ? error.message : String(error)
+            );
           },
         }
       );
     } else {
-      console.log(`Added ${quantity} of ${product.name} to local cart (user not logged in)`);
+      console.log(
+        `Added ${quantity} of ${product.name} to local cart (user not logged in)`
+      );
     }
-  
+
     setQuantity(1);
   };
 
@@ -293,43 +299,13 @@ const ProductDetail: React.FC = () => {
     <div className="container-detail flex flex-col items-center justify-center px-4 md:px-24 py-5 gap-2.5 max-w-full">
       <hr className="my-4 border-t border-gray-200 w-full" />
 
-      <ul className="navigate-group flex self-start gap-7 text-gray-600 cursor-pointer py-5">
-        <li>
-          <Link
-            to="/home"
-            className="hover:text-black text-gray-600 no-underline"
-          >
-            Home
-          </Link>
-          <span className="mx-2">/</span>
-        </li>
-        <li>
-          <Link
-            to="/shop"
-            className="hover:text-black text-gray-600 no-underline"
-          >
-            Shop
-          </Link>
-          <span className="mx-2">/</span>
-        </li>
-        <li>
-          <Link
-            to="/shop/men"
-            className="hover:text-black text-gray-600 no-underline"
-          >
-            Men
-          </Link>
-          <span className="mx-2">/</span>
-        </li>
-        <li>
-          <Link
-            to="/shop/men/t-shirts"
-            className="hover:text-black text-gray-600 no-underline"
-          >
-            T-shirts
-          </Link>
-        </li>
-      </ul>
+      <Breadcrumb
+        product={{
+          id: product.id,
+          name: product.name,
+          categoryIds: product.categoryIds || [],
+        }}
+      />
 
       <div className="product-details flex flex-col md:flex-row items-start justify-start gap-7 mb-8 w-full">
         <ProductImages
@@ -357,6 +333,7 @@ const ProductDetail: React.FC = () => {
       </div>
 
       <ProductTabs
+        productId={product.id}
         description={product.description}
         activeTab={activeTab}
         onTabClick={setActiveTab}

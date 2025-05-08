@@ -1,5 +1,10 @@
 import { useAuthStore } from "@/stores/authStore";
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from "react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  UseQueryOptions,
+} from "react-query";
 
 const USER_API_URL = import.meta.env.USER_API_URL || "http://localhost:6006";
 const CATALOG_API_URL =
@@ -126,8 +131,12 @@ export const userApi = {
 
 // Catalog API with React Query
 export const catalogApi = {
-  useGet: <TData>(endpoint: string, params?: Record<string, any>, options?: UseQueryOptions<TData>) =>
-    useQuery<TData>({
+  useGet: <TData, TResult = TData>(
+    endpoint: string,
+    params?: Record<string, any>,
+    options?: UseQueryOptions<TData, unknown, TResult>
+  ) =>
+    useQuery<TData, unknown, TResult>({
       queryKey: ["catalog", endpoint, params],
       queryFn: () => {
         const url = new URL(`${CATALOG_API_URL}${endpoint}`);
@@ -297,11 +306,81 @@ export const mediaApi = {
   },
 };
 
+interface Review {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  reviewerName: string;
+  isVerified: boolean;
+  content: string;
+  createdAt: string;
+}
+
+interface PaginatedResult<T> {
+  PageIndex: number;
+  PageSize: number;
+  Count: number;
+  Data: T[];
+}
+
 export const reviewApi = {
-  useGetReviewsByProductId: (productId: string) =>
-    useQuery({
-      queryKey: ["reviews", productId],
-      queryFn: () =>
-        fetchWithAuth(`${REVIEW_API_URL}/reviews/product/${productId}`),
+  useGetReviewsByProductId: (
+    productId: string,
+    pagination: { pageIndex: number; pageSize: number }
+  ) =>
+    useQuery<PaginatedResult<Review>, Error>({
+      queryKey: ["reviews", productId, pagination.pageIndex],
+      queryFn: async () => {
+        const url = new URL(`${REVIEW_API_URL}/reviews/product/${productId}`);
+        url.searchParams.append("pageIndex", pagination.pageIndex.toString());
+        url.searchParams.append("pageSize", pagination.pageSize.toString());
+        const response = await fetch(url.toString()); // Thay bằng fetchWithAuth nếu có
+        if (!response.ok) {
+          throw new Error("Không thể tải đánh giá");
+        }
+        return response.json() as Promise<PaginatedResult<Review>>;
+      },
     }),
+
+  usePost: () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: (data: {
+        productId: string;
+        userId: string;
+        rating: number;
+        comment: string;
+      }) =>
+        fetch(`${REVIEW_API_URL}/reviews`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }).then((res) => res.json()),
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries(["reviews", variables.productId]);
+      },
+      onError: () => {
+        throw new Error("Không thể tạo đánh giá");
+      },
+    });
+  },
+
+  usePut: () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: (data: { id: string; rating: number; comment: string }) =>
+        fetch(`${REVIEW_API_URL}/reviews`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }).then((res) => res.json()),
+      onSuccess: (_, variables) => {
+        queryClient.invalidateQueries(["reviews"]);
+      },
+      onError: () => {
+        throw new Error("Không thể cập nhật đánh giá");
+      },
+    });
+  },
 };
