@@ -1,137 +1,101 @@
 import React, { useState } from "react";
-import { Button, Slider } from "antd";
+import { Button, Slider, Spin } from "antd";
 import { icons } from "../../assets/icons";
+import { catalogApi } from "@/config/api";
 
-const FilterPanel: React.FC = () => {
-  const [priceRange, setPriceRange] = useState([50, 200]);
-  const types = ["T-shirts", "Shorts", "Shirts", "Hoodie", "Jeans"];
-  const colors = [
-    "#00C12B",
-    "#F50606",
-    "#F5DD06",
-    "#F57906",
-    "#06CAF5",
-    "#063AF5",
-    "#7D06F5",
-    "#F506A4",
-    "#FFFFFF",
-    "#000000",
-  ];
-  const sizes = [
-    "XX-Small",
-    "X-Small",
-    "Small",
-    "Medium",
-    "Large",
-    "X-Large",
-    "XX-Large",
-    "3X-Large",
-    "4X-Large",
-  ];
-  const dressStyles = ["Casual", "Formal", "Party", "Gym"];
+interface FilterOptions {
+  tags: string[];
+  minPrice: number;
+  maxPrice: number;
+  properties: Record<string, string[]>;
+}
+
+const FilterPanel: React.FC<{ categorySlug: string }> = ({ categorySlug }) => {
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
+
+  const { data, isLoading } = catalogApi.useGet<FilterOptions>(
+    "/products/filter-options",
+    { categorySlug },
+    {
+      onSuccess: (data) => {
+        setPriceRange([data.minPrice, data.maxPrice]);
+      },
+    }
+  );
+
+  if (isLoading || !data) return <Spin />;
+
+  const { tags, minPrice, maxPrice, properties } = data;
 
   return (
-    <div className="w-[295px] border border-gray-200 rounded-xl p-6 flex flex-col gap-6">
-      {/* Filter by Type */}
-      <div>
-        <div className="flex justify-between items-center">
-          <p className="font-bold text-xl">Filters</p>
-          <img src={icons.filter} alt="Filter" className="w-6 h-6" />
-        </div>
-        <hr className="my-4 border-gray-200" />
-        <div className="flex flex-col gap-5">
-          {types.map((type) => (
-            <div key={type} className="flex justify-between items-center">
-              <p className="text-gray-600 text-base">{type}</p>
-              <img src={icons.rightNav} alt="Nav" className="w-3 h-3" />
-            </div>
-          ))}
+    <div className="filter">
+      <div className="filter-title">
+        <p className="filter-heading">Filters</p>
+        <div className="filter-image">
+          <img src={icons.filter} alt="Filter" />
         </div>
       </div>
-
-      {/* Filter by Price */}
-      <div>
-        <div className="flex justify-between items-center">
-          <p className="font-bold text-xl">Price</p>
-          <img src={icons.upArrow} alt="Toggle" className="w-6 h-6" />
+      <hr />
+  
+      <div className="filter-by-type">
+        {tags.map((tag) => (
+          <div key={tag} className="t-shirt-type">
+            <p>{tag}</p>
+            <div className="type-image">
+              <img src={icons.rightNav} alt="Nav" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <hr />
+  
+      <div className="filter-by-price">
+        <div className="filter-by-price-title">
+          <p className="filter-heading">Price</p>
+          <div className="filter-image">
+            <img src={icons.upArrow} alt="Toggle" />
+          </div>
         </div>
-        <div className="py-5">
-          <Slider
-            range
-            min={0}
-            max={500}
-            value={priceRange}
-            onChange={(value) => setPriceRange(value)}
-            className="w-full"
-          />
-          <div className="flex justify-between text-sm font-medium">
+        <div className="price-slider-container">
+          <div className="price-slider">
+            <Slider
+              range
+              min={minPrice}
+              max={maxPrice}
+              value={priceRange}
+              onChange={(value) => setPriceRange(value as [number, number])}
+            />
+          </div>
+          <div className="price-values">
             <span>${priceRange[0]}</span>
             <span>${priceRange[1]}</span>
           </div>
         </div>
       </div>
-      <hr className="border-gray-200" />
-
-      {/* Filter by Color */}
-      <div>
-        <div className="flex justify-between items-center">
-          <p className="font-bold text-xl">Colors</p>
-          <img src={icons.upArrow} alt="Toggle" className="w-6 h-6" />
-        </div>
-        <div className="grid grid-cols-5 gap-2.5 py-5">
-          {colors.map((color, index) => (
-            <div
-              key={index}
-              className="w-9 h-9 rounded-full border-2 border-gray-300 cursor-pointer"
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
-      </div>
-      <hr className="border-gray-200" />
-
-      {/* Filter by Size */}
-      <div>
-        <div className="flex justify-between items-center">
-          <p className="font-bold text-xl">Size</p>
-          <img src={icons.upArrow} alt="Toggle" className="w-6 h-6" />
-        </div>
-        <div className="flex flex-wrap gap-3 py-5">
-          {sizes.map((size) => (
-            <div
-              key={size}
-              className="bg-gray-100 rounded-full px-5 py-2.5 text-gray-600 text-base cursor-pointer hover:bg-black hover:text-white"
-            >
-              {size}
+      <hr />
+  
+      {Object.entries(properties).map(([key, values]) => (
+        <div key={key}>
+          <div className="filter-section-title">
+            <p className="filter-heading">{key}</p>
+            <div className="filter-image">
+              <img src={icons.upArrow} alt="Toggle" />
             </div>
-          ))}
+          </div>
+          <div className={values.length > 8 ? "size-items" : "filter-by-dress-style"}>
+            {values.map((val) => (
+              <div key={val} className="size-item">
+                <p>{val}</p>
+              </div>
+            ))}
+          </div>
+          <hr />
         </div>
-      </div>
-      <hr className="border-gray-200" />
-
-      {/* Filter by Dress Style */}
-      <div>
-        <div className="flex justify-between items-center">
-          <p className="font-bold text-xl">Dress Style</p>
-          <img src={icons.upArrow} alt="Toggle" className="w-6 h-6" />
-        </div>
-        <div className="flex flex-col gap-5 py-5">
-          {dressStyles.map((style) => (
-            <div key={style} className="flex justify-between items-center">
-              <p className="text-gray-600 text-base">{style}</p>
-              <img src={icons.rightNav} alt="Nav" className="w-3 h-3" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Apply Filter Button */}
-      <Button
-        className="bg-black text-white rounded-full h-12 flex items-center justify-center font-medium text-sm"
-        onClick={() => console.log("Apply filters", { priceRange })}
-      >
-        Apply Filter
-      </Button>
+      ))}
+  
+      <button className="apply-filter" onClick={() => console.log("Apply filters", { priceRange })}>
+        <p>Apply Filter</p>
+      </button>
     </div>
   );
 };

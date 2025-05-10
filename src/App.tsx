@@ -47,7 +47,7 @@ function App() {
           <Route path="/confirm-payment" element={<ConfirmPayment />} />
 
           <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/category/:id" element={<CategoryPage />} />
+          <Route path="/category/:slug" element={<CategoryPage />} />
         </Routes>
         <Footer />
       </div>

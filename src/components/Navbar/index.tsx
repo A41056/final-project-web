@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
     <ul className="dropdown-menu">
       {categories.map((cat) => (
         <li key={cat.id} className="dropdown-item">
-          <Link to={`/category/${cat.id}`}>{cat.name}</Link>
+          <Link to={`/category/${cat.slug}`}>{cat.name}</Link>
           {cat.subcategories?.length > 0 &&
             renderCategoryMenu(cat.subcategories)}
         </li>
@@ -60,7 +60,7 @@ const Navbar: React.FC = () => {
         </aside>
       )}
       <header>
-        <nav>
+      <nav className="navbar">
           <ul className="nav_group">
             <li className="logo">
               <Link to="/" aria-label="Go to homepage">
@@ -69,13 +69,15 @@ const Navbar: React.FC = () => {
             </li>
             <li className="nav_links">
               <ul>
-                <li className="dropdown">
-                  <span>
-                    Shop
-                    <img src={icons.downArrow} alt="Expand shop menu" />
-                  </span>
-                  {categoryTree && renderCategoryMenu(categoryTree)}
-                </li>
+                {categoryTree?.[0] && (
+                  <li className="dropdown">
+                    <span>
+                      {categoryTree[0].name}
+                      <img src={icons.downArrow} alt="Expand shop menu" />
+                    </span>
+                    {renderCategoryMenu(categoryTree[0].subcategories)}
+                  </li>
+                )}
               </ul>
             </li>
             <li className="search">

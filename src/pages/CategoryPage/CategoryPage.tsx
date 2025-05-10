@@ -8,19 +8,16 @@ import ProductList from "@/components/ProductList/ProductList";
 import Footer from "@/components/Footer";
 
 const CategoryPage: React.FC = () => {
-  const { categoryId } = useParams<{ categoryId: string }>();
+  const { slug } = useParams<{ slug: string }>();
 
   return (
     <div className="font-satoshi">
-      <Navbar />
       <div className="px-25 py-5">
-        <Breadcrumb categoryId={categoryId} />
         <div className="flex gap-7.5">
-          <FilterPanel />
-          {categoryId && <ProductList categoryId={categoryId} />}
+          {slug && <FilterPanel categorySlug={slug} />}
+          {slug && <ProductList slug={slug} />}
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

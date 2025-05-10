@@ -7,24 +7,27 @@ import { icons } from "../../assets/icons";
 import ProductCard from "../ProductCard";
 
 interface ProductListProps {
-  categoryId: string;
+  slug: string;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ categoryId }) => {
+const ProductList: React.FC<ProductListProps> = ({ slug }) => {
   const [page, setPage] = useState(1);
   const pageSize = 9;
 
   const { data, isLoading } = catalogApi.useGet<GetProductsResponse>(
-    `/products/category/${categoryId}`,
-    { pageNumber: page, pageSize },
+    `/products/category-slug/${slug}`,
     {
-      queryKey: ["products", categoryId, page],
-      select: (data) => data,
+      pageNumber: page,
+      pageSize,
+    },
+    {
+      queryKey: ["products-by-slug", slug, page],
+      enabled: !!slug,
     }
   );
 
   const products = data?.products || [];
-  const totalProducts = 100;
+  const totalProducts = data?.totalItems || 0;
 
   const productCardData = products.map((product: Product) => ({
     id: product.id,
@@ -42,7 +45,6 @@ const ProductList: React.FC<ProductListProps> = ({ categoryId }) => {
   return (
     <div className="flex-1 p-7.5">
       <div className="flex justify-between items-center mb-4">
-        <p className="text-2xl font-bold">Casual</p>
         <div className="flex items-center gap-2.5">
           <p className="text-base">
             Showing {(page - 1) * pageSize + 1}-
