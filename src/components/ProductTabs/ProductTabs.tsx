@@ -43,23 +43,25 @@ const ProductTabs: React.FC<ProductTabsProps> = ({
         </button>
       </div>
 
-      <div className="tab-content mt-4 w-full mb-8">
+      <div className="tab-content mt-4 w-full mb-8 min-h-[400px] relative">
         <div
-          className={`tab-panel ${
-            activeTab === "details" ? "block" : "hidden"
-          } w-full`}
+          className={`tab-panel w-full transition-opacity duration-300 ${
+            activeTab === "details" ? "opacity-100" : "opacity-0 absolute"
+          }`}
         >
           <p>{description || "Thông tin chi tiết về sản phẩm..."}</p>
         </div>
-        {activeTab === "reviews" && (
-          <div className="tab-panel w-full">
-            <ReviewTab productId={productId} />
-          </div>
-        )}
         <div
-          className={`tab-panel ${
-            activeTab === "faqs" ? "block" : "hidden"
-          } w-full`}
+          className={`tab-panel w-full transition-opacity duration-300 ${
+            activeTab === "reviews" ? "opacity-100" : "opacity-0 absolute"
+          }`}
+        >
+          <ReviewTab productId={productId} />
+        </div>
+        <div
+          className={`tab-panel w-full transition-opacity duration-300 ${
+            activeTab === "faqs" ? "opacity-100" : "opacity-0 absolute"
+          }`}
         >
           <p>Các câu hỏi thường gặp...</p>
         </div>

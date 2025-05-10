@@ -335,11 +335,20 @@ export const reviewApi = {
         const url = new URL(`${REVIEW_API_URL}/reviews/product/${productId}`);
         url.searchParams.append("pageIndex", pagination.pageIndex.toString());
         url.searchParams.append("pageSize", pagination.pageSize.toString());
-        const response = await fetch(url.toString()); // Thay bằng fetchWithAuth nếu có
+
+        const response = await fetch(url.toString());
         if (!response.ok) {
           throw new Error("Không thể tải đánh giá");
         }
-        return response.json() as Promise<PaginatedResult<Review>>;
+
+        const json = await response.json();
+
+        return {
+          PageIndex: pagination.pageIndex,
+          PageSize: pagination.pageSize,
+          Count: json.totalItems,
+          Data: json.reviews,
+        };
       },
     }),
 

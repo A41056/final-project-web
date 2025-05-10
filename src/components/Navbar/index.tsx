@@ -3,7 +3,7 @@ import { icons } from "../../assets/icons";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { CartResponse, useCartStore } from "@/stores/cartStore";
-import { basketApi } from "@/config/api";
+import { basketApi, catalogApi } from "@/config/api";
 import { UserInfo } from "@/types/user";
 
 const Navbar: React.FC = () => {
@@ -23,12 +23,38 @@ const Navbar: React.FC = () => {
     }
   }, [isAuthenticated, cartData, mergeCart, hasMergedServerCart]);
 
+  type CategoryDto = {
+    id: string;
+    name: string;
+    slug?: string;
+    subcategories: CategoryDto[];
+  };
+
+  const { data: categoryTree } =
+    catalogApi.useGet<CategoryDto[]>("/categories/tree");
+
+  const renderCategoryMenu = (categories: CategoryDto[]) => (
+    <ul className="dropdown-menu">
+      {categories.map((cat) => (
+        <li key={cat.id} className="dropdown-item">
+          <Link to={`/category/${cat.id}`}>{cat.name}</Link>
+          {cat.subcategories?.length > 0 &&
+            renderCategoryMenu(cat.subcategories)}
+        </li>
+      ))}
+    </ul>
+  );
+
   return (
     <>
       {!isAuthenticated && (
         <aside className="promo-bar">
           <p>Sign up and get 20% off to your first order.</p>
-          <Link to="/register" aria-label="Go to register" className="text-white">
+          <Link
+            to="/register"
+            aria-label="Go to register"
+            className="text-white"
+          >
             Sign Up Now
           </Link>
         </aside>
@@ -44,14 +70,12 @@ const Navbar: React.FC = () => {
             <li className="nav_links">
               <ul>
                 <li className="dropdown">
-                  <Link to="#">
+                  <span>
                     Shop
                     <img src={icons.downArrow} alt="Expand shop menu" />
-                  </Link>
+                  </span>
+                  {categoryTree && renderCategoryMenu(categoryTree)}
                 </li>
-                <li><Link to="#">On Sale</Link></li>
-                <li><Link to="#">New Arrivals</Link></li>
-                <li><Link to="#">Brands</Link></li>
               </ul>
             </li>
             <li className="search">

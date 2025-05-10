@@ -7,9 +7,9 @@ interface ProductCardProps {
   img: string;
   name: string;
   rating: number;
-  price: string | number;
-  originalPrice?: string | number;
-  discountPercent?: string;
+  price: number;
+  originalPrice?: number;
+  discountPercent?: number;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({

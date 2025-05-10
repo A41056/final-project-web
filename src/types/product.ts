@@ -45,7 +45,7 @@ export interface ProductCardData {
   img: string;
   name: string;
   rating: number;
-  price: string;
-  originalPrice?: string;
-  discountPercent?: string;
+  price: number;
+  originalPrice?: number;
+  discountPercent?: number;
 }

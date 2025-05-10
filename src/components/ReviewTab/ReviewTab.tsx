@@ -5,6 +5,7 @@ import ReviewCard from "@/components/ReviewCard";
 import { reviewApi } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
 import { OrderStatus } from "@/types/order";
+import { icons } from "../../assets/icons";
 
 interface Review {
   id: string;
@@ -13,8 +14,8 @@ interface Review {
   rating: number;
   reviewerName: string;
   isVerified: boolean;
-  content: string;
-  createdAt: string;
+  comment: string;
+  created: string;
 }
 
 interface OrderDto {
@@ -92,11 +93,6 @@ const ReviewTab: React.FC<ReviewTabProps> = ({ productId }) => {
   const reviews = reviewsData?.Data || [];
   const totalReviews = reviewsData?.Count || 0;
 
-  console.log("isOrdersLoading:", isOrdersLoading);
-  console.log("ordersData:", ordersData);
-  console.log("hasCompletedOrder:", hasCompletedOrder);
-  console.log("isReviewFormOpen:", isReviewFormOpen);
-
   return (
     <div className="w-full">
       <div className="flex items-center justify-between w-full mb-4">
@@ -108,32 +104,28 @@ const ReviewTab: React.FC<ReviewTabProps> = ({ productId }) => {
         </p>
         <div className="flex items-center gap-2.5">
           <Button
-            className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center p-4"
+            className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center p-0 border-none outline-none"
             icon={
               <img
-                src="/images/filter.png"
+                src={icons.filter}
                 alt="Filter"
-                className="w-6 h-6 object-cover"
+                className="w-5 h-5 object-contain"
               />
             }
           />
-          <Button className="w-32 h-12 bg-gray-200 rounded-full flex items-center justify-center px-5">
-            Latest
-            <img
-              src="/images/down-arrow.png"
-              alt="Dropdown"
-              className="w-4 h-4 ml-2"
-            />
+
+          <Button className="bg-gray-200 rounded-full flex items-center gap-2 px-4 py-2 h-10 border-none outline-none">
+            <span className="text-sm">Latest</span>
+            <img src={icons.downArrow} alt="Dropdown" className="w-3 h-3" />
           </Button>
+
           {hasCompletedOrder && !isOrdersLoading && (
-            <div style={{ background: "yellow" }}>
-              <Button
-                className="px-4 py-2 bg-gray-100 rounded-full"
-                onClick={() => setIsReviewFormOpen(true)}
-              >
-                Write a Review
-              </Button>
-            </div>
+            <Button
+              className="px-4 py-2 bg-gray-100 rounded-full"
+              onClick={() => setIsReviewFormOpen(true)}
+            >
+              Write a Review
+            </Button>
           )}
         </div>
       </div>
@@ -176,9 +168,10 @@ const ReviewTab: React.FC<ReviewTabProps> = ({ productId }) => {
             <ReviewCard
               key={review.id}
               rating={review.rating}
-              reviewerName={review.reviewerName}
-              isVerified={review.isVerified}
-              content={review.content}
+              reviewerName={"Ẩn danh"}
+              isVerified={true}
+              comment={review.comment}
+              created={review.created}
             />
           ))}
         </div>

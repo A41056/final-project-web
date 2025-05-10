@@ -15,6 +15,7 @@ import { Home } from "./pages/Home/Home";
 import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import Cart from "./pages/Cart/Cart";
 import ConfirmPayment from "./components/ConfirmPayment/ConfirmPayment";
+import CategoryPage from "./pages/CategoryPage/CategoryPage";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -46,6 +47,7 @@ function App() {
           <Route path="/confirm-payment" element={<ConfirmPayment />} />
 
           <Route path="/products/:id" element={<ProductDetail />} />
+          <Route path="/category/:id" element={<CategoryPage />} />
         </Routes>
         <Footer />
       </div>

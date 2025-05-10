@@ -21,4 +21,6 @@ export const icons = {
   verified: new URL("../assets/verified.png", import.meta.url).href,
   minus: new URL("../assets/minus.png", import.meta.url).href,
   add: new URL("../assets/add.png", import.meta.url).href,
+  filter: new URL("../assets/filter.png", import.meta.url).href,
+  rightNav: new URL("../assets/right-nav.png", import.meta.url).href,
 };
