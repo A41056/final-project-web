@@ -10,7 +10,12 @@ interface FilterOptions {
   properties: Record<string, string[]>;
 }
 
-const FilterPanel: React.FC<{ categorySlug: string }> = ({ categorySlug }) => {
+interface FilterPanelProps {
+  categorySlug: string;
+  onFilterChange: (filters: any) => void;
+}
+
+const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange }) => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
 
   const { data, isLoading } = catalogApi.useGet<FilterOptions>(
@@ -22,6 +27,15 @@ const FilterPanel: React.FC<{ categorySlug: string }> = ({ categorySlug }) => {
       },
     }
   );
+
+  const handleApplyFilters = () => {
+    console.log("FilterPanel Apply Filter");
+    
+    onFilterChange({
+      priceMin: priceRange[0],
+      priceMax: priceRange[1],
+    });
+  };
 
   if (isLoading || !data) return <Spin />;
 
@@ -49,8 +63,8 @@ const FilterPanel: React.FC<{ categorySlug: string }> = ({ categorySlug }) => {
       </div>
       <hr />
   
-      <div className="filter-by-price">
-        <div className="filter-by-price-title">
+      <div className="filter-section">
+        <div className="filter-section-title">
           <p className="filter-heading">Price</p>
           <div className="filter-image">
             <img src={icons.upArrow} alt="Toggle" />
@@ -75,14 +89,14 @@ const FilterPanel: React.FC<{ categorySlug: string }> = ({ categorySlug }) => {
       <hr />
   
       {Object.entries(properties).map(([key, values]) => (
-        <div key={key}>
+        <div className="filter-section" key={key}>
           <div className="filter-section-title">
             <p className="filter-heading">{key}</p>
             <div className="filter-image">
               <img src={icons.upArrow} alt="Toggle" />
             </div>
           </div>
-          <div className={values.length > 8 ? "size-items" : "filter-by-dress-style"}>
+          <div className={"size-items"}>
             {values.map((val) => (
               <div key={val} className="size-item">
                 <p>{val}</p>
@@ -93,7 +107,7 @@ const FilterPanel: React.FC<{ categorySlug: string }> = ({ categorySlug }) => {
         </div>
       ))}
   
-      <button className="apply-filter" onClick={() => console.log("Apply filters", { priceRange })}>
+      <button className="apply-filter" onClick={handleApplyFilters}>
         <p>Apply Filter</p>
       </button>
     </div>

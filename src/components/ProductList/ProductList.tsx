@@ -8,9 +8,10 @@ import ProductCard from "../ProductCard";
 
 interface ProductListProps {
   slug: string;
+  filters: any;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ slug }) => {
+const ProductList: React.FC<ProductListProps> = ({ slug, filters }) => {
   const [page, setPage] = useState(1);
   const pageSize = 9;
 
@@ -19,9 +20,10 @@ const ProductList: React.FC<ProductListProps> = ({ slug }) => {
     {
       pageNumber: page,
       pageSize,
+      ...filters,
     },
     {
-      queryKey: ["products-by-slug", slug, page],
+      queryKey: ["products-by-slug", slug, page, filters],
       enabled: !!slug,
     }
   );

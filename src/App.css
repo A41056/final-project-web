@@ -1210,17 +1210,11 @@ footer {
   object-position: center;
 }
 
-.filter-by-price,
-.filter-by-color,
-.filter-by-size,
-.filter-by-dress-style {
+.filter-section {
   width: 100%;
 }
 
-.filter-by-price-title,
-.filter-by-color-title,
-.filter-by-size-title,
-.filter-by-dress-style-title {
+.filter-section-title{
   display: flex;
   align-items: center;
   justify-content: space-between;
