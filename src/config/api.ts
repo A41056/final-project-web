@@ -23,23 +23,50 @@ const handleApiError = (response: Response) => {
   }
   throw new Error(`API error: ${response.status} - ${response.statusText}`);
 };
+const refreshToken = async () => {
+  const { refreshToken } = useAuthStore.getState();
+  const response = await fetch(`${USER_API_URL}/refresh-token`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refreshToken }),
+  });
+
+  if (!response.ok) throw new Error("Unable to refresh token");
+
+  const data = await response.json();
+  const { token, refreshToken: newRefreshToken, user } = data;
+  useAuthStore.getState().login(token, newRefreshToken, user);
+  return token;
+};
 
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  const token = useAuthStore.getState().token;
+  let token = useAuthStore.getState().token;
+
   const headers = new Headers(options.headers || {});
   headers.set("Content-Type", "application/json");
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+  if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const response = await fetch(url, { ...options, headers });
-  if (!response.ok) {
-    if (response.status === 401) {
+  let response = await fetch(url, { ...options, headers });
+
+  if (response.status === 401) {
+    try {
+      token = await refreshToken();
+
+      headers.set("Authorization", `Bearer ${token}`);
+      response = await fetch(url, { ...options, headers });
+    } catch (err) {
       useAuthStore.getState().logout();
       window.location.href = "/login";
+      throw new Error("Unauthorized");
     }
+  }
+
+  if (!response.ok) {
     throw new Error(`API error: ${response.status} - ${response.statusText}`);
   }
+
   return response.json();
 };
 
@@ -127,6 +154,21 @@ export const userApi = {
           body: JSON.stringify({ Email, Password }),
         }),
     }),
+
+  useResetPassword: () =>
+  useMutation({
+    mutationFn: (data: { email: string }) =>
+      fetch(`${USER_API_URL}/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }).then((res) => {
+        if (!res.ok) throw new Error("Reset failed");
+        return res.json();
+      }),
+  }),
 };
 
 // Catalog API with React Query

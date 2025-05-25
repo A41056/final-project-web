@@ -4,12 +4,12 @@ import { UserInfo } from "@/types/user";
 
 interface LoginResponse {
   token: string;
+  refreshToken: string;
   user: UserInfo;
 }
 
 const USER_API_URL = import.meta.env.USER_API_URL || "http://localhost:6006";
 
-// Hàm fetchWithAuth từ api.ts
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const token = useAuthStore.getState().token;
   const headers = new Headers(options.headers || {});
@@ -32,7 +32,6 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 export const useAuth = () => {
   const { login, logout } = useAuthStore();
 
-  // Sử dụng useMutation cho login
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       fetchWithAuth(`${USER_API_URL}/login`, {
@@ -40,13 +39,8 @@ export const useAuth = () => {
         body: JSON.stringify({ Email: email, Password: password }),
       }) as Promise<LoginResponse>,
     onSuccess: (response) => {
-      const { token, user } = response;
-      login(token, user); // Lưu token và user vào store
-    },
-    onError: (error: any) => {
-      const errorMessage =
-        error.message || "An unknown error occurred during login";
-      throw new Error(errorMessage);
+      const { token, refreshToken, user } = response;
+      login(token, refreshToken, user);
     },
   });
 
@@ -57,12 +51,37 @@ export const useAuth = () => {
     await loginMutation.mutateAsync(credentials);
     return {
       token: loginMutation.data?.token,
+      refreshToken: loginMutation.data?.refreshToken,
       user: loginMutation.data?.user,
     } as LoginResponse;
+  };
+
+  const register = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
+    const res = await fetch(`${USER_API_URL}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ Email: email, Password: password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || "Registration failed");
+    }
+
+    return res.json();
   };
 
   return {
     login: loginUser,
     logout,
+    register,
   };
 };

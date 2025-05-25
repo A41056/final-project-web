@@ -1,17 +1,28 @@
-import React, { useState } from "react";
+import React from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
-import { Form, Input, Select, Checkbox, Button, Typography } from "antd";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  Form,
+  Input,
+  Select,
+  Checkbox,
+  Button,
+  Typography,
+  Card,
+  Divider,
+  Space,
+} from "antd";
+import { GoogleOutlined, FacebookFilled } from "@ant-design/icons";
 
 const { Option } = Select;
-const { Text } = Typography;
+const { Title } = Typography;
 
 const Register: React.FC = () => {
   const [form] = Form.useForm();
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (values: { email: string; password: string }) => {
+  const handleSubmit = async (values: any) => {
     try {
       await register({
         email: values.email,
@@ -19,36 +30,26 @@ const Register: React.FC = () => {
       });
       navigate("/login");
     } catch (error) {
-      alert("Registration failed");
+      form.setFields([{ name: "email", errors: ["Registration failed"] }]);
     }
   };
 
-  const formItemLayout = {
-    labelCol: { xs: { span: 24 }, sm: { span: 8 } },
-    wrapperCol: { xs: { span: 24 }, sm: { span: 16 } },
-  };
-
-  const tailFormItemLayout = {
-    wrapperCol: { xs: { span: 24, offset: 0 }, sm: { span: 16, offset: 8 } },
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-lg p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <Card className="w-full max-w-lg shadow-xl" bordered={false}>
+        <Title level={3} className="text-center mb-6">Create an Account</Title>
         <Form
           form={form}
-          {...formItemLayout}
+          layout="vertical"
           onFinish={handleSubmit}
-          initialValues={{
-            prefix: "84",
-          }}
+          initialValues={{ prefix: "84" }}
         >
           <Form.Item
             name="email"
-            label="E-mail"
+            label="Email"
             rules={[
-              { type: "email", message: "The input is not a valid E-mail!" },
-              { required: true, message: "Please input your E-mail!" },
+              { required: true, message: "Please input your email!" },
+              { type: "email", message: "Invalid email!" },
             ]}
           >
             <Input />
@@ -88,9 +89,7 @@ const Register: React.FC = () => {
           <Form.Item
             name="phone"
             label="Phone Number"
-            rules={[
-              { required: true, message: "Please input your phone number!" },
-            ]}
+            rules={[{ required: true, message: "Please input your phone number!" }]}
           >
             <Input
               addonBefore={
@@ -111,25 +110,35 @@ const Register: React.FC = () => {
             rules={[
               {
                 validator: (_, value) =>
-                  value
-                    ? Promise.resolve()
-                    : Promise.reject(new Error("Please agree to the terms")),
+                  value ? Promise.resolve() : Promise.reject(new Error("Please agree to the terms")),
               },
             ]}
-            {...tailFormItemLayout}
           >
             <Checkbox>
               I have read the <a href="#">agreement</a>
             </Checkbox>
           </Form.Item>
 
-          <Form.Item {...tailFormItemLayout}>
-            <Button type="primary" htmlType="submit">
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block>
               Register
             </Button>
+            <div className="mt-4 text-center">
+              Already have an account? <Link to="/login">Login</Link>
+            </div>
           </Form.Item>
         </Form>
-      </div>
+
+        <Divider plain>Or register with</Divider>
+        <Space direction="vertical" className="w-full">
+          <Button icon={<GoogleOutlined />} block>
+            Continue with Google
+          </Button>
+          <Button icon={<FacebookFilled />} style={{ background: "#3b5998", color: "#fff" }} block>
+            Continue with Facebook
+          </Button>
+        </Space>
+      </Card>
     </div>
   );
 };

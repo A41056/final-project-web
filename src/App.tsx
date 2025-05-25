@@ -16,6 +16,7 @@ import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import Cart from "./pages/Cart/Cart";
 import ConfirmPayment from "./components/ConfirmPayment/ConfirmPayment";
 import CategoryPage from "./pages/CategoryPage/CategoryPage";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -35,6 +36,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route
             path="/account"
             element={
