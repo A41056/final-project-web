@@ -1,3 +1,4 @@
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -22,9 +23,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
 };
 
 function App() {
@@ -47,7 +53,6 @@ function App() {
           />
           <Route path="/cart" element={<Cart />} />
           <Route path="/confirm-payment" element={<ConfirmPayment />} />
-
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
         </Routes>

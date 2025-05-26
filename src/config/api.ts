@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/authStore";
+import { Review } from "@/types/review";
 import {
   useQuery,
   useMutation,
@@ -347,17 +348,6 @@ export const mediaApi = {
     });
   },
 };
-
-interface Review {
-  id: string;
-  productId: string;
-  userId: string;
-  rating: number;
-  reviewerName: string;
-  isVerified: boolean;
-  content: string;
-  createdAt: string;
-}
 
 interface PaginatedResult<T> {
   PageIndex: number;

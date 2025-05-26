@@ -6,17 +6,7 @@ import { reviewApi } from "@/config/api";
 import { useAuthStore } from "@/stores/authStore";
 import { OrderStatus } from "@/types/order";
 import { icons } from "../../assets/icons";
-
-interface Review {
-  id: string;
-  productId: string;
-  userId: string;
-  rating: number;
-  reviewerName: string;
-  isVerified: boolean;
-  comment: string;
-  created: string;
-}
+import { Review } from "@/types/review";
 
 interface OrderDto {
   id: string;
@@ -65,7 +55,7 @@ const ReviewTab: React.FC<ReviewTabProps> = ({ productId }) => {
 
   const hasCompletedOrder =
     Array.isArray(ordersData?.orders) &&
-    ordersData.orders.some(
+    ordersData?.orders.some(
       (order) =>
         order.status === OrderStatus.Completed &&
         order.orderItems.some((item) => item.productId === productId)

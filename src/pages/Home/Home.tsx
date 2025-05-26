@@ -172,9 +172,9 @@ export const Home = () => {
                   img={product.img}
                   name={product.name}
                   rating={product.rating}
-                  price={product.price}
-                  originalPrice={product.originalPrice}
-                  discountPercent={product.discountPercent}
+                  price={Number(product.price)}
+                  originalPrice={Number(product.originalPrice)}
+                  discountPercent={Number(product.discountPercent)}
                 />
               ))
             )}
@@ -199,9 +199,9 @@ export const Home = () => {
                   img={product.img}
                   name={product.name}
                   rating={product.rating}
-                  price={product.price}
-                  originalPrice={product.originalPrice}
-                  discountPercent={product.discountPercent}
+                  price={Number(product.price)}
+                  originalPrice={Number(product.originalPrice)}
+                  discountPercent={Number(product.discountPercent)}
                 />
               ))
             )}
@@ -244,19 +244,22 @@ export const Home = () => {
             rating={5}
             reviewerName="Sarah M."
             isVerified={true}
-            content="I'm blown away by the quality and style of the clothes I received from Shop.co. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations."
+            comment="I'm blown away by the quality and style of the clothes I received from Shop.co. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations."
+            created= "01/01/2025"
           />
           <ReviewCard
             rating={5}
             reviewerName="Alex K."
             isVerified={true}
-            content="Finding clothes that align with my personal style used to be a challenge until I discovered Shop.co. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions."
+            comment="Finding clothes that align with my personal style used to be a challenge until I discovered Shop.co. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions."
+            created= "01/01/2025"
           />
           <ReviewCard
             rating={5}
             reviewerName="James L."
             isVerified={true}
-            content="As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon Shop.co. The selection of clothes is not only diverse but also on-point with the latest trends."
+            comment="As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon Shop.co. The selection of clothes is not only diverse but also on-point with the latest trends."
+            created = "01/01/2025"
           />
         </div>
       </div>

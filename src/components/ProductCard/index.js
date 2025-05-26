@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useNavigate } from "react-router-dom";
 import { icons } from "../../assets/icons";
-const ProductCard = ({ id, img, name, rating, price, originalPrice, discountPercent, }) => {
+const ProductCard = ({ id, img, name, rating, price, originalPrice, discountPercent }) => {
     const navigate = useNavigate();
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating - fullStars >= 0.5;

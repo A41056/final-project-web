@@ -21,7 +21,7 @@ const ReviewTab = ({ productId }) => {
         enabled: !!userId,
     });
     const hasCompletedOrder = Array.isArray(ordersData?.orders) &&
-        ordersData.orders.some((order) => order.status === OrderStatus.Completed &&
+        ordersData?.orders.some((order) => order.status === OrderStatus.Completed &&
             order.orderItems.some((item) => item.productId === productId));
     const createReviewMutation = reviewApi.usePost();
     const handleSubmitReview = (values) => {

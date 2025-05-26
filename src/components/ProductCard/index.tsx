@@ -19,7 +19,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   rating,
   price,
   originalPrice,
-  discountPercent,
+  discountPercent
 }) => {
   const navigate = useNavigate();
   const fullStars = Math.floor(rating);
