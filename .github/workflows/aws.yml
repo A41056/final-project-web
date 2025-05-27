@@ -6,6 +6,7 @@ on:
 
 env:
   AWS_REGION: ap-southeast-1                    # Vùng AWS bạn sử dụng, vd ap-southeast-1
+  ECR_REGISTRY: 654654461467.dkr.ecr.us-east-1.amazonaws.com
   ECR_REPOSITORY: fe-web                        # Tên repository ECR chứa image FE web
   ECS_SERVICE: fe-web-service                    # Tên service ECS chạy FE web
   ECS_CLUSTER: fe-web-cluster                    # Tên cluster ECS
