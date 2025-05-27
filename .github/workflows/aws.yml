@@ -1,0 +1,63 @@
+name: Deploy FE Web to Amazon ECS
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: ap-southeast-1                    # Vùng AWS bạn sử dụng, vd ap-southeast-1
+  ECR_REPOSITORY: fe-web                        # Tên repository ECR chứa image FE web
+  ECS_SERVICE: fe-web-service                    # Tên service ECS chạy FE web
+  ECS_CLUSTER: fe-web-cluster                    # Tên cluster ECS
+  ECS_TASK_DEFINITION: .github/ecs/fe-web-task-def.json  # Đường dẫn đến file task definition JSON trong repo
+  CONTAINER_NAME: fe-web-container                # Tên container trong task definition
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy FE Web
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}       # IAM User Access key
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} # IAM User Secret key
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push Docker image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./fe-web
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Update ECS task definition with new image
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.ECS_TASK_DEFINITION }}
+        container-name: ${{ env.CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy updated task definition to ECS service
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
