@@ -5,6 +5,14 @@ import { useAuthStore } from "@/stores/authStore";
 import { CartResponse, useCartStore } from "@/stores/cartStore";
 import { basketApi, catalogApi } from "@/config/api";
 import { UserInfo } from "@/types/user";
+import { Dropdown, Menu } from "antd";
+
+type CategoryDto = {
+  id: string;
+  name: string;
+  slug?: string;
+  subcategories: CategoryDto[];
+};
 
 const Navbar: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
@@ -23,44 +31,32 @@ const Navbar: React.FC = () => {
     }
   }, [isAuthenticated, cartData, mergeCart, hasMergedServerCart]);
 
-  type CategoryDto = {
-    id: string;
-    name: string;
-    slug?: string;
-    subcategories: CategoryDto[];
-  };
+  const { data: categoryTree } = catalogApi.useGet<CategoryDto[]>("/categories/tree");
 
-  const { data: categoryTree } =
-    catalogApi.useGet<CategoryDto[]>("/categories/tree");
+  // Đệ quy chuyển subcategories thành menu item antd
+  const renderCategoryMenuItems = (categories: CategoryDto[]): Parameters<typeof Menu>[0]["items"] =>
+    categories.map((cat) => ({
+      key: cat.id,
+      label: <Link to={`/category/${cat.slug}`}>{cat.name}</Link>,
+      children: cat.subcategories?.length ? renderCategoryMenuItems(cat.subcategories) : undefined,
+    }));
 
-  const renderCategoryMenu = (categories: CategoryDto[]) => (
-    <ul className="dropdown-menu">
-      {categories.map((cat) => (
-        <li key={cat.id} className="dropdown-item">
-          <Link to={`/category/${cat.slug}`}>{cat.name}</Link>
-          {cat.subcategories?.length > 0 &&
-            renderCategoryMenu(cat.subcategories)}
-        </li>
-      ))}
-    </ul>
-  );
+  const categoryMenuItems = categoryTree?.[0] ? renderCategoryMenuItems(categoryTree[0].subcategories) : [];
+
+  const categoryMenu = <Menu items={categoryMenuItems} mode="vertical" selectable={false} />;
 
   return (
     <>
       {!isAuthenticated && (
         <aside className="promo-bar">
           <p>Sign up and get 20% off to your first order.</p>
-          <Link
-            to="/register"
-            aria-label="Go to register"
-            className="text-white"
-          >
+          <Link to="/register" aria-label="Go to register" className="text-white">
             Sign Up Now
           </Link>
         </aside>
       )}
       <header>
-      <nav className="navbar">
+        <nav className="navbar">
           <ul className="nav_group">
             <li className="logo">
               <Link to="/" aria-label="Go to homepage">
@@ -71,11 +67,26 @@ const Navbar: React.FC = () => {
               <ul>
                 {categoryTree?.[0] && (
                   <li className="dropdown">
-                    <span>
-                      {categoryTree[0].name}
-                      <img src={icons.downArrow} alt="Expand shop menu" />
-                    </span>
-                    {renderCategoryMenu(categoryTree[0].subcategories)}
+                    <Dropdown
+                      overlay={categoryMenu}
+                      trigger={["hover"]}
+                      placement="bottomLeft"
+                      arrow
+                      overlayClassName="category-dropdown-menu"
+                    >
+                      <span
+                        style={{ display: "inline-flex", alignItems: "center", cursor: "pointer" }}
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                      >
+                        {categoryTree[0].name}
+                        <img
+                          src={icons.downArrow}
+                          alt="Expand shop menu"
+                          style={{ marginLeft: 6, width: 12, height: 12, userSelect: "none" }}
+                        />
+                      </span>
+                    </Dropdown>
                   </li>
                 )}
               </ul>

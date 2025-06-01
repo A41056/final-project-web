@@ -170,6 +170,16 @@ ul {
   max-height: 24px;
 }
 
+.category-dropdown-menu {
+  min-width: 200px !important;
+  font-size: 14px;             
+}
+
+.category-dropdown-menu .ant-dropdown-menu-sub {
+  min-width: 200px !important;
+  font-size: 14px;
+}
+
 img {
   width: 100%;
   height: auto;
