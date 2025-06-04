@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useNavigate } from "react-router-dom";
 import OrderHistoryTab from "@/components/OrderHistoryTab/OrderHistoryTab"; // Import OrderHistoryTab component
 import ChangePassword from "@/components/ChangePassword/ChangePassword";
+import ShippingAddresses from "@/components/ShippingAddresses/ShippingAddresses";
 
 const { Option } = Select;
 const { Sider, Content } = Layout;
@@ -13,6 +14,7 @@ const Account: React.FC = () => {
   const [form] = Form.useForm();
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeTab, setActiveTab] = useState("profile"); // Track active tab
+  const [userAddresses, setUserAddresses] = useState<string[]>(["123 Main St", "456 Elm St"]);
   const { user, logout, setUser } = useAuthStore();
   const navigate = useNavigate();
 
@@ -23,6 +25,13 @@ const Account: React.FC = () => {
   const handleLogoutConfirm = () => {
     logout();
     navigate("/login");
+  };
+
+  const handleAddAddress = () => {
+    const newAddress = prompt("Nhập địa chỉ mới:");
+    if (newAddress) {
+      setUserAddresses([...userAddresses, newAddress]);
+    }
   };
 
   return (
@@ -49,10 +58,13 @@ const Account: React.FC = () => {
                 <Menu.Item key="1" onClick={() => setActiveTab("profile")}>
                   Thông tin tài khoản
                 </Menu.Item>
-                <Menu.Item key="2" onClick={() => setActiveTab("changePassword")}>
+                <Menu.Item key="2" onClick={() => setActiveTab("shippingAddresses")}>
+                  Địa chỉ nhận hàng
+                </Menu.Item>
+                <Menu.Item key="3" onClick={() => setActiveTab("changePassword")}>
                   Đổi mật khẩu
                 </Menu.Item>
-                <Menu.Item key="3" onClick={() => setActiveTab("orderHistory")}>
+                <Menu.Item key="4" onClick={() => setActiveTab("orderHistory")}>
                   Lịch sử đơn hàng
                 </Menu.Item>
               </Menu>
@@ -135,6 +147,9 @@ const Account: React.FC = () => {
                   </Form.Item>
                 </Form>
               )}
+              {activeTab === "shippingAddresses" && <ShippingAddresses addresses={[]} onAddAddress={function (): void {
+                throw new Error("Function not implemented.");
+              } } />}
 
               {activeTab === "orderHistory" && <OrderHistoryTab />}
 
