@@ -182,7 +182,6 @@ const ProductDetail = () => {
             };
         });
     };
-    const relatedProducts = transformProductData(relatedProductsData?.products);
     if (productLoading)
         return _jsx("div", { className: "text-center", children: "Loading product details..." });
     if (productError)
@@ -193,6 +192,6 @@ const ProductDetail = () => {
                     id: product.id,
                     name: product.name,
                     categoryIds: product.categoryIds || [],
-                } }), _jsxs("div", { className: "product-details flex flex-col md:flex-row items-start justify-start gap-7 mb-8 w-full", children: [_jsx(ProductImages, { allImages: allImages, selectedImage: selectedImage, onImageClick: handleImageClick }), _jsxs("div", { className: "product-detail flex-1 min-h-[700px] flex flex-col justify-between w-full md:w-1/2", children: [_jsx(ProductInfo, { name: product.name, description: product.description, variants: product.variants, selectedVariant: selectedVariant, onVariantChange: handleVariantChange }), _jsx(ProductActions, { variants: product.variants, selectedVariant: selectedVariant, quantity: quantity, onQuantityChange: handleQuantityChange, onAddToCart: handleAddToCart, isAddingToCart: isSyncingCart })] })] }), _jsx(ProductTabs, { productId: product.id, description: product.description, activeTab: activeTab, onTabClick: setActiveTab }), _jsx(RelatedProducts, { relatedProducts: relatedProducts, isLoading: relatedLoading, error: relatedError })] }));
+                } }), _jsxs("div", { className: "product-details flex flex-col md:flex-row items-start justify-start gap-7 mb-8 w-full", children: [_jsx(ProductImages, { allImages: allImages, selectedImage: selectedImage, onImageClick: handleImageClick }), _jsxs("div", { className: "product-detail flex-1 min-h-[700px] flex flex-col justify-between w-full md:w-1/2", children: [_jsx(ProductInfo, { name: product.name, description: product.description, variants: product.variants, selectedVariant: selectedVariant, onVariantChange: handleVariantChange }), _jsx(ProductActions, { variants: product.variants, selectedVariant: selectedVariant, quantity: quantity, onQuantityChange: handleQuantityChange, onAddToCart: handleAddToCart, isAddingToCart: isSyncingCart })] })] }), _jsx(ProductTabs, { productId: product.id, description: product.description, activeTab: activeTab, onTabClick: setActiveTab }), _jsx(RelatedProducts, { productId: id })] }));
 };
 export default ProductDetail;

@@ -1,35 +1,29 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { orderApi } from "@/config/api";
-import { Empty, Spin } from "antd";
+import { Empty, Spin, Tabs, Select } from "antd";
 
-// Định nghĩa interface cho đơn hàng
-interface OrderItem {
-  productId: string;
-  productName?: string; // Có thể không có trong API, để tùy chọn
-  quantity: number;
-  price: number;
-  variantProperties: { type: string; value: string; image: string | null }[];
+const { Option } = Select;
+
+interface VariantProperty {
+  type: string;
+  value: string;
+  image: string | null;
 }
 
-interface Address {
-  firstName: string;
-  lastName: string;
-  emailAddress: string;
-  addressLine: string;
-  country: string;
-  state: string | null;
-  zipCode: string | null;
+interface OrderItem {
+  productId: string;
+  productName?: string;
+  quantity: number;
+  price: number;
+  variantProperties: VariantProperty[];
 }
 
 interface Order {
   id: string;
-  customerId: string;
-  orderName: string;
-  shippingAddress: Address;
-  billingAddress: Address;
   status: number;
   orderItems: OrderItem[];
+  createdAt?: string; // nếu có để filter time
 }
 
 interface OrderHistoryResponse {
@@ -37,16 +31,42 @@ interface OrderHistoryResponse {
 }
 
 interface OrderHistoryTabProps {
-  isActive: boolean; // Xác định tab có đang được chọn không (cho lazy loading)
+  isActive: boolean;
 }
+
+const statusMap: Record<
+  number,
+  { label: string; bgColor: string; textColor: string }
+> = {
+  1: { label: "Đang chờ xử lý", bgColor: "bg-yellow-100", textColor: "text-yellow-800" },
+  2: { label: "Đã xác nhận", bgColor: "bg-blue-100", textColor: "text-blue-800" },
+  3: { label: "Đang giao hàng", bgColor: "bg-indigo-100", textColor: "text-indigo-800" },
+  4: { label: "Đã giao", bgColor: "bg-green-100", textColor: "text-green-800" },
+  5: { label: "Đã hủy", bgColor: "bg-red-100", textColor: "text-red-800" },
+};
+
+const timeFilters = [
+  { label: "Past 1 Month", value: "1m" },
+  { label: "Past 3 Months", value: "3m" },
+  { label: "Past 6 Months", value: "6m" },
+  { label: "Past 12 Months", value: "12m" },
+  { label: "All", value: "all" },
+];
+
+const tabItems = [
+  { key: "all", label: "Orders" },
+  { key: "not-shipped", label: "Not Yet Shipped" },
+  { key: "cancelled", label: "Cancelled Orders" },
+];
 
 const OrderHistoryTab: React.FC<OrderHistoryTabProps> = ({ isActive }) => {
   const { user } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const [timeFilter, setTimeFilter] = useState<string>("all");
 
-  // Tạo endpoint chỉ khi user và user.id tồn tại
-  const endpoint = isActive && user && user.id ? `/orders/customer/${user.id}` : "";
+  // chỉ fetch khi isActive true
+  const endpoint = isActive && user?.id ? `/orders/customer/${user.id}` : "";
 
-  // Lazy loading: Chỉ tải dữ liệu khi tab active và user tồn tại
   const { data: orderData, isLoading: orderLoading, error: orderError } =
     orderApi.useGet(endpoint) as {
       data: OrderHistoryResponse | undefined;
@@ -54,108 +74,137 @@ const OrderHistoryTab: React.FC<OrderHistoryTabProps> = ({ isActive }) => {
       error: any;
     };
 
-  const statusMap: Record<number, string> = {
-    1: "Đang chờ xử lý",
-    2: "Đã xác nhận",
-    3: "Đang giao hàng",
-    4: "Đã giao",
-    5: "Đã hủy",
-  };
+  // lọc orders theo tab và filter thời gian
+  const filteredOrders = useMemo(() => {
+    if (!orderData?.orders) return [];
 
-  // Tính tổng tiền từ orderItems
-  const calculateTotalAmount = (items: OrderItem[]): number =>
+    let filtered = orderData.orders;
+
+    if (activeTab === "not-shipped") filtered = filtered.filter(o => o.status === 3);
+    else if (activeTab === "cancelled") filtered = filtered.filter(o => o.status === 5);
+
+    if (timeFilter !== "all") {
+      const monthsAgo = parseInt(timeFilter.replace("m", ""), 10);
+      const cutoffDate = new Date();
+      cutoffDate.setMonth(cutoffDate.getMonth() - monthsAgo);
+      filtered = filtered.filter(o => {
+        const orderDate = new Date(o.createdAt ?? 0);
+        return orderDate >= cutoffDate;
+      });
+    }
+
+    return filtered;
+  }, [orderData, activeTab, timeFilter]);
+
+  const calculateTotalAmount = (items: OrderItem[]) =>
     items.reduce((total, item) => total + item.quantity * item.price, 0);
+
+  if (!isActive) return null; // không render khi không active
 
   if (!user || !user.id) {
     return (
-      <Empty
-        description="Vui lòng đăng nhập để xem lịch sử mua hàng"
-        className="flex flex-col items-center justify-center min-h-[300px]"
-      >
-        <a href="/login" className="text-blue-500 underline text-sm">
-          Đăng nhập
-        </a>
+      <Empty description="Vui lòng đăng nhập để xem lịch sử mua hàng" className="flex flex-col items-center justify-center min-h-[300px]">
+        <a href="/login" className="text-black underline text-sm">Đăng nhập</a>
       </Empty>
     );
   }
 
-  if (orderLoading) {
-    return <Spin tip="Đang tải lịch sử mua hàng..." />;
-  }
+  if (orderLoading) return <Spin tip="Đang tải lịch sử mua hàng..." className="py-10" />;
 
-  if (orderError) {
+  if (orderError)
     return (
-      <Empty
-        description="Đã xảy ra lỗi khi tải lịch sử mua hàng. Vui lòng thử lại sau."
-        className="flex flex-col items-center justify-center min-h-[300px]"
-      />
+      <Empty description="Đã xảy ra lỗi khi tải lịch sử mua hàng. Vui lòng thử lại sau." className="flex flex-col items-center justify-center min-h-[300px]" />
     );
-  }
-
-  if (!orderData || !orderData.orders || orderData.orders.length === 0) {
-    return (
-      <Empty
-        description="Bạn chưa có đơn hàng nào"
-        className="flex flex-col items-center justify-center min-h-[300px]"
-      >
-        <a href="/shop" className="text-blue-500 underline text-sm">
-          Tiếp tục mua sắm
-        </a>
-      </Empty>
-    );
-  }
 
   return (
-    <div className="w-full">
-      {orderData.orders.map((order: Order) => (
-        <div key={order.id} className="border border-gray-200 rounded-lg p-4 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h3 className="text-base font-semibold">Mã đơn hàng: {order.id}</h3>
-              <p className="text-sm text-gray-600">
-                Tổng tiền: ${calculateTotalAmount(order.orderItems).toFixed(2)}
-              </p>
-              <p className="text-sm text-gray-600">
-                Trạng thái: {statusMap[order.status] || "Không xác định"}
-              </p>
-            </div>
-            <a href={`/order-history/${order.id}`} className="text-blue-500 text-sm">
-              Xem chi tiết
-            </a>
-          </div>
-          <div className="mt-2">
-            {order.orderItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-2 py-2 border-t border-gray-200">
-                <img
-                  src={
-                    item.variantProperties.find((prop) => prop.image)?.image ||
-                    "https://via.placeholder.com/32"
-                  }
-                  alt={item.productName || "Sản phẩm"}
-                  className="w-8 h-8 object-cover rounded"
-                />
-                <div>
-                  <p className="text-sm">{item.productName || "Sản phẩm không xác định"}</p>
-                  <p className="text-xs text-gray-600">
-                    {item.variantProperties.length > 0 ? (
-                      item.variantProperties.map((prop) => (
-                        <span key={`${prop.type}-${prop.value}`}>
-                          {prop.type}: {prop.value}{" "}
-                        </span>
-                      ))
-                    ) : (
-                      <span>Không có biến thể</span>
-                    )}
-                  </p>
-                  <p className="text-xs">
-                    Số lượng: {item.quantity} | Giá: ${item.price.toFixed(2)}
-                  </p>
+    <div className="text-black">
+      <h2 className="text-2xl font-bold mb-6">Your Orders: {filteredOrders.length}</h2>
+
+      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} className="mb-4" />
+
+      <div className="mb-6 max-w-xs">
+        <Select value={timeFilter} onChange={setTimeFilter} options={timeFilters} className="w-full" popupClassName="text-black" />
+      </div>
+
+      {filteredOrders.length === 0 ? (
+        <Empty description="Không có đơn hàng phù hợp" className="flex flex-col items-center justify-center min-h-[300px]" />
+      ) : (
+        <div className="space-y-6">
+          {filteredOrders.map(order => {
+            const status = statusMap[order.status] || {
+              label: "Không xác định",
+              bgColor: "bg-gray-100",
+              textColor: "text-gray-800",
+            };
+            return (
+              <div key={order.id} className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-black break-words">
+                      Order ID:
+                      <br />
+                      <span className="font-mono text-indigo-700">{order.id}</span>
+                    </h3>
+                  </div>
+                  <div>
+                    <span className={`${status.bgColor} ${status.textColor} inline-block px-3 py-1 rounded-full font-semibold`}>
+                      {status.label}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-black font-semibold text-lg">
+                      Total:
+                      <br />
+                      {calculateTotalAmount(order.orderItems).toLocaleString("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      })}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <a href={`/order-history/${order.id}`} className="text-indigo-700 font-semibold hover:underline">
+                      View Details &rarr;
+                    </a>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {order.orderItems.map(item => (
+                    <div
+                      key={item.productId}
+                      className="flex items-center gap-6 border rounded-lg border-gray-200 p-4 hover:shadow-sm transition-shadow duration-150"
+                    >
+                      <img
+                        src={item.variantProperties.find(v => v.image)?.image || "https://via.placeholder.com/80"}
+                        alt={item.productName || "Product"}
+                        className="w-20 h-20 object-cover rounded-md flex-shrink-0 border border-gray-300"
+                        style={{ maxWidth: 80, maxHeight: 80 }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-lg font-semibold text-black truncate">{item.productName || "Unknown Product"}</p>
+                        <p className="text-sm text-gray-600 truncate mt-1">
+                          {item.variantProperties.length > 0
+                            ? item.variantProperties.map(prop => `${prop.type}: ${prop.value}`).join(" • ")
+                            : "No variants"}
+                        </p>
+                      </div>
+                      <div className="text-right min-w-[140px]">
+                        <p className="text-black font-semibold">Qty: {item.quantity}</p>
+                        <p className="text-indigo-700 font-semibold mt-1 text-lg">
+                          {item.price.toLocaleString("vi-VN", {
+                            style: "currency",
+                            currency: "VND",
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      ))}
+      )}
     </div>
   );
 };

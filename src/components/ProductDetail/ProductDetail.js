@@ -25,7 +25,6 @@ const ProductDetails = ({ product, quantity, handleQuantityChange, handleAddToCa
     const availableSizes = Array.from(new Set(product.variants
         .filter((v) => v.properties.some((p) => p.type === "Color" && p.value === selectedColor))
         .map((v) => v.properties.find((p) => p.type === "Size")?.value))).filter(Boolean);
-    // Tính tổng giá dựa trên variant và số lượng
     const totalPrice = selectedVariant.price * quantity;
     return (_jsxs("div", { className: "product-details", children: [_jsxs("div", { className: "product-images", children: [_jsx("div", { className: "box1", children: _jsx("img", { src: product.imageFiles[1] || "/images/product-image-1.png", alt: "Image 1" }) }), _jsx("div", { className: "box2", children: _jsx("img", { src: product.imageFiles[2] || "/images/product-image-2.png", alt: "Image 2" }) }), _jsx("div", { className: "big-box", children: _jsx("img", { src: selectedVariant.properties.find((p) => p.type === "Color")
                                 ?.image ||

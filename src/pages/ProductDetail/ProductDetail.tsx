@@ -283,8 +283,6 @@ const ProductDetail: React.FC = () => {
       });
   };
 
-  const relatedProducts = transformProductData(relatedProductsData?.products);
-
   if (productLoading)
     return <div className="text-center">Loading product details...</div>;
   if (productError)
@@ -327,7 +325,7 @@ const ProductDetail: React.FC = () => {
             quantity={quantity}
             onQuantityChange={handleQuantityChange}
             onAddToCart={handleAddToCart}
-            isAddingToCart={isSyncingCart} // Use isSyncingCart instead of isAddingToCart
+            isAddingToCart={isSyncingCart}
           />
         </div>
       </div>
@@ -340,9 +338,7 @@ const ProductDetail: React.FC = () => {
       />
 
       <RelatedProducts
-        relatedProducts={relatedProducts}
-        isLoading={relatedLoading}
-        error={relatedError}
+        productId={id!}
       />
     </div>
   );

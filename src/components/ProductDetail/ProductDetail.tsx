@@ -66,7 +66,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     )
   ).filter(Boolean) as string[];
 
-  // Tính tổng giá dựa trên variant và số lượng
   const totalPrice = selectedVariant.price * quantity;
 
   return (

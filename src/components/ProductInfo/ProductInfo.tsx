@@ -38,9 +38,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
               <div
                 key={value}
                 className={`px-6 py-3 rounded-full cursor-pointer bg-gray-200 text-gray-600 font-normal text-base border-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] ${
-                  selectedVariant[prop.type] === value
-                    ? "bg-black text-white border-black"
-                    : "border-transparent"
+                  selectedVariant[prop.type] === value ? "selected" : "border-transparent"
                 }`}
                 onClick={() => onVariantChange(prop.type, value || "")}
               >

@@ -19,7 +19,7 @@ const fetchWithAuth = async (url, options = {}) => {
     return response.json();
 };
 export const useAuth = () => {
-    const { login, logout } = useAuthStore();
+    const { login, logout, setUser, setTokens } = useAuthStore();
     const loginMutation = useMutation({
         mutationFn: ({ email, password }) => fetchWithAuth(`${USER_API_URL}/login`, {
             method: "POST",
@@ -30,6 +30,28 @@ export const useAuth = () => {
             login(token, refreshToken, user);
         },
     });
+    const refreshToken = async (refreshToken) => {
+        const response = await fetchWithAuth(`${USER_API_URL}/refresh-token`, {
+            method: "POST",
+            body: JSON.stringify({ refreshToken }),
+        });
+        const { token: newToken, refreshToken: newRefreshToken } = response;
+        setTokens(newToken, newRefreshToken);
+    };
+    const register = async (credentials) => {
+        const res = await fetch(`${USER_API_URL}/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ Email: credentials.email, Password: credentials.password }),
+        });
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.message || "Registration failed");
+        }
+        return res.json();
+    };
     const loginUser = async (credentials) => {
         await loginMutation.mutateAsync(credentials);
         return {
@@ -38,23 +60,11 @@ export const useAuth = () => {
             user: loginMutation.data?.user,
         };
     };
-    const register = async ({ email, password, }) => {
-        const res = await fetch(`${USER_API_URL}/register`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ Email: email, Password: password }),
-        });
-        if (!res.ok) {
-            const data = await res.json();
-            throw new Error(data.message || "Registration failed");
-        }
-        return res.json();
-    };
     return {
         login: loginUser,
         logout,
+        refreshToken,
         register,
+        setTokens,
     };
 };

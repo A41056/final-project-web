@@ -786,6 +786,30 @@ footer {
   gap: 10px;
 }
 
+.cart-tabs .ant-tabs-nav-list {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.cart-tabs .ant-tabs-tab-active {
+  color: black;
+  border-color: black !important;
+}
+
+.cart-tabs .ant-tabs-ink-bar {
+  background-color: black !important;
+}
+
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: space-between;
+  justify-content: center;
+  padding: 20px 100px;
+  gap: 10px;
+}
+
 .container-detail hr {
   border: 1px solid #0000001a;
   width: 100%;
@@ -1376,6 +1400,22 @@ footer {
   font-size: 14px;
   line-height: 18.9px;
   color: #ffffff;
+}
+
+.sizes div {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.sizes div:hover {
+  background-color: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.sizes div.selected {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-color: #000 !important;
 }
 
 .content {

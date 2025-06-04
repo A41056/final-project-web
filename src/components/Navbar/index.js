@@ -18,7 +18,6 @@ const Navbar = () => {
         }
     }, [isAuthenticated, cartData, mergeCart, hasMergedServerCart]);
     const { data: categoryTree } = catalogApi.useGet("/categories/tree");
-    // Đệ quy chuyển subcategories thành menu item antd
     const renderCategoryMenuItems = (categories) => categories.map((cat) => ({
         key: cat.id,
         label: _jsx(Link, { to: `/category/${cat.slug}`, children: cat.name }),

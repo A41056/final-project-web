@@ -94,14 +94,12 @@ const Cart: React.FC = () => {
   };
 
   return (
-    <div className="container-detail flex flex-col items-center justify-center px-4 md:px-24 py-4 gap-2 max-w-full">
-      <hr className="my-3 border-t border-gray-200 w-full" />
+    <div className="container-detail w-full py-8">
       <CartBreadcrumb />
-      <h1 className="text-xl md:text-2xl font-bold mb-4 self-start">Quản lý mua sắm</h1>
-
       <Tabs
         activeKey={activeTab}
         onChange={(key) => setActiveTab(key as "cart" | "order-history")}
+        className="cart-tabs"
         items={[
           {
             key: "cart",
@@ -109,8 +107,8 @@ const Cart: React.FC = () => {
             children: (
               <div className="w-full">
                 {cart && cart.items.length > 0 ? (
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1 space-y-2">
+                  <div className="flex flex-col md:flex-row gap-8">
+                    <div className="flex-1 space-y-4 max-h-[600px] overflow-y-auto pr-2">
                       {cart.items.map((item) => (
                         <CartItem
                           key={getVariantKey(item)}
@@ -129,9 +127,9 @@ const Cart: React.FC = () => {
                 ) : (
                   <Empty
                     description="Giỏ hàng của bạn đang trống"
-                    className="flex flex-col items-center justify-center min-h-[300px]"
+                    className="flex flex-col items-center justify-center min-h-[350px]"
                   >
-                    <a href="/shop" className="text-blue-500 underline text-sm">
+                    <a href="/shop" className="text-blue-600 underline text-lg">
                       Tiếp tục mua sắm
                     </a>
                   </Empty>

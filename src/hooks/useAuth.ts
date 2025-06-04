@@ -30,7 +30,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 };
 
 export const useAuth = () => {
-  const { login, logout } = useAuthStore();
+  const { login, logout, setUser, setTokens } = useAuthStore();
 
   const loginMutation = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
@@ -44,31 +44,24 @@ export const useAuth = () => {
     },
   });
 
-  const loginUser = async (credentials: {
-    email: string;
-    password: string;
-  }) => {
-    await loginMutation.mutateAsync(credentials);
-    return {
-      token: loginMutation.data?.token,
-      refreshToken: loginMutation.data?.refreshToken,
-      user: loginMutation.data?.user,
-    } as LoginResponse;
+  const refreshToken = async (refreshToken: string) => {
+    const response = await fetchWithAuth(`${USER_API_URL}/refresh-token`, {
+      method: "POST",
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    const { token: newToken, refreshToken: newRefreshToken } = response;
+
+    setTokens(newToken, newRefreshToken);
   };
 
-  const register = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
+  const register = async (credentials: { email: string; password: string }) => {
     const res = await fetch(`${USER_API_URL}/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ Email: email, Password: password }),
+      body: JSON.stringify({ Email: credentials.email, Password: credentials.password }),
     });
 
     if (!res.ok) {
@@ -79,9 +72,20 @@ export const useAuth = () => {
     return res.json();
   };
 
+  const loginUser = async (credentials: { email: string; password: string }) => {
+    await loginMutation.mutateAsync(credentials);
+    return {
+      token: loginMutation.data?.token,
+      refreshToken: loginMutation.data?.refreshToken,
+      user: loginMutation.data?.user,
+    } as LoginResponse;
+  };
+
   return {
     login: loginUser,
     logout,
+    refreshToken,
     register,
+    setTokens,
   };
 };

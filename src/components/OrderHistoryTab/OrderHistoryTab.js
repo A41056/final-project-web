@@ -1,35 +1,80 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { useState, useMemo } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { orderApi } from "@/config/api";
-import { Empty, Spin } from "antd";
+import { Empty, Spin, Tabs, Select } from "antd";
+const { Option } = Select;
+const statusMap = {
+    1: { label: "Đang chờ xử lý", bgColor: "bg-yellow-100", textColor: "text-yellow-800" },
+    2: { label: "Đã xác nhận", bgColor: "bg-blue-100", textColor: "text-blue-800" },
+    3: { label: "Đang giao hàng", bgColor: "bg-indigo-100", textColor: "text-indigo-800" },
+    4: { label: "Đã giao", bgColor: "bg-green-100", textColor: "text-green-800" },
+    5: { label: "Đã hủy", bgColor: "bg-red-100", textColor: "text-red-800" },
+};
+const timeFilters = [
+    { label: "Past 1 Month", value: "1m" },
+    { label: "Past 3 Months", value: "3m" },
+    { label: "Past 6 Months", value: "6m" },
+    { label: "Past 12 Months", value: "12m" },
+    { label: "All", value: "all" },
+];
+const tabItems = [
+    { key: "all", label: "Orders" },
+    { key: "not-shipped", label: "Not Yet Shipped" },
+    { key: "cancelled", label: "Cancelled Orders" },
+];
 const OrderHistoryTab = ({ isActive }) => {
     const { user } = useAuthStore();
-    // Tạo endpoint chỉ khi user và user.id tồn tại
-    const endpoint = isActive && user && user.id ? `/orders/customer/${user.id}` : "";
-    // Lazy loading: Chỉ tải dữ liệu khi tab active và user tồn tại
+    const [activeTab, setActiveTab] = useState("all");
+    const [timeFilter, setTimeFilter] = useState("all");
+    // chỉ fetch khi isActive true
+    const endpoint = isActive && user?.id ? `/orders/customer/${user.id}` : "";
     const { data: orderData, isLoading: orderLoading, error: orderError } = orderApi.useGet(endpoint);
-    const statusMap = {
-        1: "Đang chờ xử lý",
-        2: "Đã xác nhận",
-        3: "Đang giao hàng",
-        4: "Đã giao",
-        5: "Đã hủy",
-    };
-    // Tính tổng tiền từ orderItems
+    // lọc orders theo tab và filter thời gian
+    const filteredOrders = useMemo(() => {
+        if (!orderData?.orders)
+            return [];
+        let filtered = orderData.orders;
+        if (activeTab === "not-shipped")
+            filtered = filtered.filter(o => o.status === 3);
+        else if (activeTab === "cancelled")
+            filtered = filtered.filter(o => o.status === 5);
+        if (timeFilter !== "all") {
+            const monthsAgo = parseInt(timeFilter.replace("m", ""), 10);
+            const cutoffDate = new Date();
+            cutoffDate.setMonth(cutoffDate.getMonth() - monthsAgo);
+            filtered = filtered.filter(o => {
+                const orderDate = new Date(o.createdAt ?? 0);
+                return orderDate >= cutoffDate;
+            });
+        }
+        return filtered;
+    }, [orderData, activeTab, timeFilter]);
     const calculateTotalAmount = (items) => items.reduce((total, item) => total + item.quantity * item.price, 0);
+    if (!isActive)
+        return null; // không render khi không active
     if (!user || !user.id) {
-        return (_jsx(Empty, { description: "Vui l\u00F2ng \u0111\u0103ng nh\u1EADp \u0111\u1EC3 xem l\u1ECBch s\u1EED mua h\u00E0ng", className: "flex flex-col items-center justify-center min-h-[300px]", children: _jsx("a", { href: "/login", className: "text-blue-500 underline text-sm", children: "\u0110\u0103ng nh\u1EADp" }) }));
+        return (_jsx(Empty, { description: "Vui l\u00F2ng \u0111\u0103ng nh\u1EADp \u0111\u1EC3 xem l\u1ECBch s\u1EED mua h\u00E0ng", className: "flex flex-col items-center justify-center min-h-[300px]", children: _jsx("a", { href: "/login", className: "text-black underline text-sm", children: "\u0110\u0103ng nh\u1EADp" }) }));
     }
-    if (orderLoading) {
-        return _jsx(Spin, { tip: "\u0110ang t\u1EA3i l\u1ECBch s\u1EED mua h\u00E0ng..." });
-    }
-    if (orderError) {
+    if (orderLoading)
+        return _jsx(Spin, { tip: "\u0110ang t\u1EA3i l\u1ECBch s\u1EED mua h\u00E0ng...", className: "py-10" });
+    if (orderError)
         return (_jsx(Empty, { description: "\u0110\u00E3 x\u1EA3y ra l\u1ED7i khi t\u1EA3i l\u1ECBch s\u1EED mua h\u00E0ng. Vui l\u00F2ng th\u1EED l\u1EA1i sau.", className: "flex flex-col items-center justify-center min-h-[300px]" }));
-    }
-    if (!orderData || !orderData.orders || orderData.orders.length === 0) {
-        return (_jsx(Empty, { description: "B\u1EA1n ch\u01B0a c\u00F3 \u0111\u01A1n h\u00E0ng n\u00E0o", className: "flex flex-col items-center justify-center min-h-[300px]", children: _jsx("a", { href: "/shop", className: "text-blue-500 underline text-sm", children: "Ti\u1EBFp t\u1EE5c mua s\u1EAFm" }) }));
-    }
-    return (_jsx("div", { className: "w-full", children: orderData.orders.map((order) => (_jsxs("div", { className: "border border-gray-200 rounded-lg p-4 mb-4", children: [_jsxs("div", { className: "flex justify-between items-center", children: [_jsxs("div", { children: [_jsxs("h3", { className: "text-base font-semibold", children: ["M\u00E3 \u0111\u01A1n h\u00E0ng: ", order.id] }), _jsxs("p", { className: "text-sm text-gray-600", children: ["T\u1ED5ng ti\u1EC1n: $", calculateTotalAmount(order.orderItems).toFixed(2)] }), _jsxs("p", { className: "text-sm text-gray-600", children: ["Tr\u1EA1ng th\u00E1i: ", statusMap[order.status] || "Không xác định"] })] }), _jsx("a", { href: `/order-history/${order.id}`, className: "text-blue-500 text-sm", children: "Xem chi ti\u1EBFt" })] }), _jsx("div", { className: "mt-2", children: order.orderItems.map((item, index) => (_jsxs("div", { className: "flex items-center gap-2 py-2 border-t border-gray-200", children: [_jsx("img", { src: item.variantProperties.find((prop) => prop.image)?.image ||
-                                    "https://via.placeholder.com/32", alt: item.productName || "Sản phẩm", className: "w-8 h-8 object-cover rounded" }), _jsxs("div", { children: [_jsx("p", { className: "text-sm", children: item.productName || "Sản phẩm không xác định" }), _jsx("p", { className: "text-xs text-gray-600", children: item.variantProperties.length > 0 ? (item.variantProperties.map((prop) => (_jsxs("span", { children: [prop.type, ": ", prop.value, " "] }, `${prop.type}-${prop.value}`)))) : (_jsx("span", { children: "Kh\u00F4ng c\u00F3 bi\u1EBFn th\u1EC3" })) }), _jsxs("p", { className: "text-xs", children: ["S\u1ED1 l\u01B0\u1EE3ng: ", item.quantity, " | Gi\u00E1: $", item.price.toFixed(2)] })] })] }, index))) })] }, order.id))) }));
+    return (_jsxs("div", { className: "text-black", children: [_jsxs("h2", { className: "text-2xl font-bold mb-6", children: ["Your Orders: ", filteredOrders.length] }), _jsx(Tabs, { activeKey: activeTab, onChange: setActiveTab, items: tabItems, className: "mb-4" }), _jsx("div", { className: "mb-6 max-w-xs", children: _jsx(Select, { value: timeFilter, onChange: setTimeFilter, options: timeFilters, className: "w-full", popupClassName: "text-black" }) }), filteredOrders.length === 0 ? (_jsx(Empty, { description: "Kh\u00F4ng c\u00F3 \u0111\u01A1n h\u00E0ng ph\u00F9 h\u1EE3p", className: "flex flex-col items-center justify-center min-h-[300px]" })) : (_jsx("div", { className: "space-y-6", children: filteredOrders.map(order => {
+                    const status = statusMap[order.status] || {
+                        label: "Không xác định",
+                        bgColor: "bg-gray-100",
+                        textColor: "text-gray-800",
+                    };
+                    return (_jsxs("div", { className: "bg-white rounded-lg shadow-md border border-gray-300 p-6", children: [_jsxs("div", { className: "grid grid-cols-1 md:grid-cols-4 gap-6 items-center mb-6", children: [_jsx("div", { children: _jsxs("h3", { className: "text-lg font-semibold text-black break-words", children: ["Order ID:", _jsx("br", {}), _jsx("span", { className: "font-mono text-indigo-700", children: order.id })] }) }), _jsx("div", { children: _jsx("span", { className: `${status.bgColor} ${status.textColor} inline-block px-3 py-1 rounded-full font-semibold`, children: status.label }) }), _jsx("div", { children: _jsxs("p", { className: "text-black font-semibold text-lg", children: ["Total:", _jsx("br", {}), calculateTotalAmount(order.orderItems).toLocaleString("vi-VN", {
+                                                    style: "currency",
+                                                    currency: "VND",
+                                                })] }) }), _jsx("div", { className: "text-right", children: _jsx("a", { href: `/order-history/${order.id}`, className: "text-indigo-700 font-semibold hover:underline", children: "View Details \u2192" }) })] }), _jsx("div", { className: "space-y-4", children: order.orderItems.map(item => (_jsxs("div", { className: "flex items-center gap-6 border rounded-lg border-gray-200 p-4 hover:shadow-sm transition-shadow duration-150", children: [_jsx("img", { src: item.variantProperties.find(v => v.image)?.image || "https://via.placeholder.com/80", alt: item.productName || "Product", className: "w-20 h-20 object-cover rounded-md flex-shrink-0 border border-gray-300", style: { maxWidth: 80, maxHeight: 80 } }), _jsxs("div", { className: "flex-1 min-w-0", children: [_jsx("p", { className: "text-lg font-semibold text-black truncate", children: item.productName || "Unknown Product" }), _jsx("p", { className: "text-sm text-gray-600 truncate mt-1", children: item.variantProperties.length > 0
+                                                        ? item.variantProperties.map(prop => `${prop.type}: ${prop.value}`).join(" • ")
+                                                        : "No variants" })] }), _jsxs("div", { className: "text-right min-w-[140px]", children: [_jsxs("p", { className: "text-black font-semibold", children: ["Qty: ", item.quantity] }), _jsx("p", { className: "text-indigo-700 font-semibold mt-1 text-lg", children: item.price.toLocaleString("vi-VN", {
+                                                        style: "currency",
+                                                        currency: "VND",
+                                                    }) })] })] }, item.productId))) })] }, order.id));
+                }) }))] }));
 };
 export default OrderHistoryTab;

@@ -17,6 +17,10 @@ interface FilterPanelProps {
 
 const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange }) => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
+  const [selectedProperties, setSelectedProperties] = useState<Record<string, string>>({});
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    price: true,
+  });
 
   const { data, isLoading } = catalogApi.useGet<FilterOptions>(
     "/products/filter-options",
@@ -24,16 +28,27 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
     {
       onSuccess: (data) => {
         setPriceRange([data.minPrice, data.maxPrice]);
+        const initOpenSections: Record<string, boolean> = { price: true };
+        Object.keys(data.properties).forEach((key) => {
+          initOpenSections[key] = false;
+        });
+        setOpenSections(initOpenSections);
       },
     }
   );
 
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   const handleApplyFilters = () => {
-    console.log("FilterPanel Apply Filter");
-    
     onFilterChange({
       priceMin: priceRange[0],
       priceMax: priceRange[1],
+      properties: selectedProperties,
     });
   };
 
@@ -50,7 +65,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
         </div>
       </div>
       <hr />
-  
+
       <div className="filter-by-type">
         {tags.map((tag) => (
           <div key={tag} className="t-shirt-type">
@@ -62,51 +77,105 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
         ))}
       </div>
       <hr />
-  
+
       <div className="filter-section">
-        <div className="filter-section-title">
+        <div
+          className="filter-section-title"
+          style={{ cursor: "pointer" }}
+          onClick={() => toggleSection("price")}
+        >
           <p className="filter-heading">Price</p>
-          <div className="filter-image">
+          <div
+            className="filter-image"
+            style={{
+              transform: openSections.price ? "rotate(0deg)" : "rotate(-90deg)",
+              transition: "transform 0.3s",
+            }}
+          >
             <img src={icons.upArrow} alt="Toggle" />
           </div>
         </div>
-        <div className="price-slider-container">
-          <div className="price-slider">
-            <Slider
-              range
-              min={minPrice}
-              max={maxPrice}
-              value={priceRange}
-              onChange={(value) => setPriceRange(value as [number, number])}
-            />
+
+        {openSections.price && (
+          <div className="price-slider-container">
+            <div className="price-slider">
+              <Slider
+                range
+                min={minPrice}
+                max={maxPrice}
+                value={priceRange}
+                onChange={(value) => setPriceRange(value as [number, number])}
+              />
+            </div>
+            <div className="price-values">
+              <span>${priceRange[0]}</span>
+              <span>${priceRange[1]}</span>
+            </div>
           </div>
-          <div className="price-values">
-            <span>${priceRange[0]}</span>
-            <span>${priceRange[1]}</span>
-          </div>
-        </div>
+        )}
       </div>
       <hr />
-  
+
       {Object.entries(properties).map(([key, values]) => (
         <div className="filter-section" key={key}>
-          <div className="filter-section-title">
+          <div
+            className="filter-section-title"
+            style={{ cursor: "pointer" }}
+            onClick={() => toggleSection(key)}
+          >
             <p className="filter-heading">{key}</p>
-            <div className="filter-image">
+            <div
+              className="filter-image"
+              style={{
+                transform: openSections[key] ? "rotate(0deg)" : "rotate(-90deg)",
+                transition: "transform 0.3s",
+              }}
+            >
               <img src={icons.upArrow} alt="Toggle" />
             </div>
           </div>
-          <div className={"size-items"}>
-            {values.map((val) => (
-              <div key={val} className="size-item">
-                <p>{val}</p>
-              </div>
-            ))}
-          </div>
+
+          {openSections[key] && (
+            <div className={"size-items"}>
+              {values.map((val) => {
+                const isSelected = selectedProperties[key] === val;
+                return (
+                  <div
+                    key={val}
+                    className={`size-item ${isSelected ? "selected" : ""}`}
+                    style={{
+                      cursor: "pointer",
+                      userSelect: "none",
+                      padding: "4px 12px",
+                      borderRadius: 8,
+                      marginBottom: 6,
+                      backgroundColor: isSelected ? "#000" : "#f0f0f0",
+                      color: isSelected ? "#fff" : "#000",
+                      transition: "background-color 0.3s, color 0.3s",
+                      display: "inline-block",
+                    }}
+                    onClick={() => {
+                      setSelectedProperties((prev) => {
+                        if (prev[key] === val) {
+                          const newProps = { ...prev };
+                          delete newProps[key];
+                          return newProps;
+                        }
+                        return { ...prev, [key]: val };
+                      });
+                    }}
+                  >
+                    <p style={{ margin: 0 }}>{val}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <hr />
         </div>
       ))}
-  
+
       <button className="apply-filter" onClick={handleApplyFilters}>
         <p>Apply Filter</p>
       </button>

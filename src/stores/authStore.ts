@@ -9,6 +9,7 @@ interface AuthState {
   login: (token: string, refreshToken: string, user: UserInfo) => void;
   logout: () => void;
   setUser: (user: UserInfo) => void;
+  setTokens: (token: string, refreshToken: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -24,6 +25,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(user));
     set({ isAuthenticated: true, token, refreshToken, user });
+  },
+
+  setTokens: (token, refreshToken) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("refreshToken", refreshToken);
+    set({isAuthenticated: true, token, refreshToken });
   },
 
   logout: () => {

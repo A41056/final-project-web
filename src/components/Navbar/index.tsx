@@ -33,7 +33,6 @@ const Navbar: React.FC = () => {
 
   const { data: categoryTree } = catalogApi.useGet<CategoryDto[]>("/categories/tree");
 
-  // Đệ quy chuyển subcategories thành menu item antd
   const renderCategoryMenuItems = (categories: CategoryDto[]): Parameters<typeof Menu>[0]["items"] =>
     categories.map((cat) => ({
       key: cat.id,
