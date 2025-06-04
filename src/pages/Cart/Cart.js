@@ -8,7 +8,6 @@ import CartItem from "@/components/Cart/CartItem";
 import CartSummary from "@/components/Cart/CartSummary";
 import { Empty, message, Tabs } from "antd";
 import { basketApi } from "@/config/api";
-import OrderHistoryTab from "@/components/OrderHistoryTab/OrderHistoryTab";
 const Cart = () => {
     const { cart, itemCount, addItem, setCart } = useCartStore();
     const { user } = useAuthStore();
@@ -88,11 +87,6 @@ const Cart = () => {
                         key: "cart",
                         label: "Giỏ hàng",
                         children: (_jsx("div", { className: "w-full", children: cart && cart.items.length > 0 ? (_jsxs("div", { className: "flex flex-col md:flex-row gap-8", children: [_jsx("div", { className: "flex-1 space-y-4 max-h-[600px] overflow-y-auto pr-2", children: cart.items.map((item) => (_jsx(CartItem, { item: item, onQuantityChange: handleQuantityChange, onRemove: handleRemove }, getVariantKey(item)))) }), _jsx(CartSummary, { totalItems: itemCount, totalPrice: cart.totalPrice, onCheckout: handleCheckout })] })) : (_jsx(Empty, { description: "Gi\u1ECF h\u00E0ng c\u1EE7a b\u1EA1n \u0111ang tr\u1ED1ng", className: "flex flex-col items-center justify-center min-h-[350px]", children: _jsx("a", { href: "/shop", className: "text-blue-600 underline text-lg", children: "Ti\u1EBFp t\u1EE5c mua s\u1EAFm" }) })) })),
-                    },
-                    {
-                        key: "order-history",
-                        label: "Lịch sử mua hàng",
-                        children: _jsx(OrderHistoryTab, { isActive: activeTab === "order-history" }),
                     },
                 ] })] }));
 };

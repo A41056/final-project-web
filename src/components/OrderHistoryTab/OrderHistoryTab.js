@@ -23,14 +23,14 @@ const tabItems = [
     { key: "not-shipped", label: "Not Yet Shipped" },
     { key: "cancelled", label: "Cancelled Orders" },
 ];
-const OrderHistoryTab = ({ isActive }) => {
+const OrderHistoryTab = () => {
     const { user } = useAuthStore();
     const [activeTab, setActiveTab] = useState("all");
     const [timeFilter, setTimeFilter] = useState("all");
-    // chỉ fetch khi isActive true
-    const endpoint = isActive && user?.id ? `/orders/customer/${user.id}` : "";
+    // Fetch orders only when user is logged in
+    const endpoint = user?.id ? `/orders/customer/${user.id}` : "";
     const { data: orderData, isLoading: orderLoading, error: orderError } = orderApi.useGet(endpoint);
-    // lọc orders theo tab và filter thời gian
+    // Filter orders based on tab and time filter
     const filteredOrders = useMemo(() => {
         if (!orderData?.orders)
             return [];
@@ -51,8 +51,6 @@ const OrderHistoryTab = ({ isActive }) => {
         return filtered;
     }, [orderData, activeTab, timeFilter]);
     const calculateTotalAmount = (items) => items.reduce((total, item) => total + item.quantity * item.price, 0);
-    if (!isActive)
-        return null; // không render khi không active
     if (!user || !user.id) {
         return (_jsx(Empty, { description: "Vui l\u00F2ng \u0111\u0103ng nh\u1EADp \u0111\u1EC3 xem l\u1ECBch s\u1EED mua h\u00E0ng", className: "flex flex-col items-center justify-center min-h-[300px]", children: _jsx("a", { href: "/login", className: "text-black underline text-sm", children: "\u0110\u0103ng nh\u1EADp" }) }));
     }

@@ -30,10 +30,6 @@ interface OrderHistoryResponse {
   orders: Order[];
 }
 
-interface OrderHistoryTabProps {
-  isActive: boolean;
-}
-
 const statusMap: Record<
   number,
   { label: string; bgColor: string; textColor: string }
@@ -59,13 +55,13 @@ const tabItems = [
   { key: "cancelled", label: "Cancelled Orders" },
 ];
 
-const OrderHistoryTab: React.FC<OrderHistoryTabProps> = ({ isActive }) => {
+const OrderHistoryTab: React.FC = () => {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<string>("all");
   const [timeFilter, setTimeFilter] = useState<string>("all");
 
-  // chỉ fetch khi isActive true
-  const endpoint = isActive && user?.id ? `/orders/customer/${user.id}` : "";
+  // Fetch orders only when user is logged in
+  const endpoint = user?.id ? `/orders/customer/${user.id}` : "";
 
   const { data: orderData, isLoading: orderLoading, error: orderError } =
     orderApi.useGet(endpoint) as {
@@ -74,7 +70,7 @@ const OrderHistoryTab: React.FC<OrderHistoryTabProps> = ({ isActive }) => {
       error: any;
     };
 
-  // lọc orders theo tab và filter thời gian
+  // Filter orders based on tab and time filter
   const filteredOrders = useMemo(() => {
     if (!orderData?.orders) return [];
 
@@ -98,8 +94,6 @@ const OrderHistoryTab: React.FC<OrderHistoryTabProps> = ({ isActive }) => {
 
   const calculateTotalAmount = (items: OrderItem[]) =>
     items.reduce((total, item) => total + item.quantity * item.price, 0);
-
-  if (!isActive) return null; // không render khi không active
 
   if (!user || !user.id) {
     return (

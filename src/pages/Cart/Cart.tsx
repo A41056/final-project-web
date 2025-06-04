@@ -137,11 +137,6 @@ const Cart: React.FC = () => {
               </div>
             ),
           },
-          {
-            key: "order-history",
-            label: "Lịch sử mua hàng",
-            children: <OrderHistoryTab isActive={activeTab === "order-history"} />,
-          },
         ]}
       />
     </div>
