@@ -4,19 +4,25 @@ import { Button, Pagination } from "antd";
 import { catalogApi } from "@/config/api";
 import { icons } from "../../assets/icons";
 import ProductCard from "../ProductCard";
-const ProductList = ({ slug, filters }) => {
+const ProductList = ({ slug, endpoint, filters, searchMode = false, }) => {
     const [page, setPage] = useState(1);
     const pageSize = 9;
-    const { data, isLoading } = catalogApi.useGet(`/products/category-slug/${slug}`, {
+    const apiEndpoint = endpoint
+        ? endpoint
+        : `/products/category-slug/${slug}`;
+    const params = {
         pageNumber: page,
         pageSize,
-        ...filters,
-    }, {
-        queryKey: ["products-by-slug", slug, page, filters],
-        enabled: !!slug,
+        ...(searchMode ? filters : { ...filters }),
+    };
+    const { data, isLoading } = catalogApi.useGet(apiEndpoint, params, {
+        queryKey: [apiEndpoint, page, filters],
+        enabled: !!(slug || searchMode),
     });
+    console.log(data);
     const products = data?.products || [];
     const totalProducts = data?.totalItems || 0;
+    console.log(products);
     const productCardData = products.map((product) => ({
         id: product.id,
         img: product.imageFiles[0] || "/placeholder.png",
@@ -28,7 +34,7 @@ const ProductList = ({ slug, filters }) => {
             : undefined,
         discountPercent: product.variants[0]?.price < 100 ? "20" : undefined,
     }));
-    return (_jsxs("div", { className: "flex-1 p-7.5", children: [_jsx("div", { className: "flex justify-between items-center mb-4", children: _jsxs("div", { className: "flex items-center gap-2.5", children: [_jsxs("p", { className: "text-base", children: ["Showing ", (page - 1) * pageSize + 1, "-", Math.min(page * pageSize, totalProducts), " of ", totalProducts, " ", "Products"] }), _jsx("p", { className: "text-base", children: "Sort by:" }), _jsxs(Button, { className: "bg-gray-100 rounded-full flex items-center gap-2 px-4 py-2 h-10 border-none outline-none", children: [_jsx("span", { className: "text-sm", children: "Latest" }), _jsx("img", { src: icons.downArrow, alt: "Dropdown", className: "w-3 h-3" })] })] }) }), isLoading ? (_jsx("p", { className: "text-center text-gray-500", children: "Loading products..." })) : productCardData.length === 0 ? (_jsx("p", { className: "text-center text-gray-500", children: "No products found." })) : (_jsx("div", { className: "product-list grid grid-cols-3 gap-7.5 my-12", children: productCardData.map((product) => (_jsx(ProductCard, { id: product.id, img: product.img, name: product.name, rating: 5, price: Number(product.price), originalPrice: product.originalPrice
+    return (_jsxs("div", { className: "flex-1 p-7.5", children: [_jsx("div", { className: "flex justify-between items-center mb-4", children: _jsxs("div", { className: "flex items-center gap-2.5", children: [_jsxs("p", { className: "text-base", children: ["Showing ", (page - 1) * pageSize + 1, "-", Math.min(page * pageSize, totalProducts), " of ", totalProducts, " ", "Products"] }), _jsx("p", { className: "text-base", children: "Sort by:" }), _jsxs(Button, { className: "bg-gray-100 rounded-full flex items-center gap-2 px-4 py-2 h-10 border-none outline-none", children: [_jsx("span", { className: "text-sm", children: "Latest" }), _jsx("img", { src: icons.downArrow, alt: "Dropdown", className: "w-3 h-3" })] })] }) }), isLoading ? (_jsx("p", { className: "text-center text-gray-500", children: "Loading products..." })) : productCardData.length === 0 ? (_jsx("p", { className: "text-center text-gray-500", children: "No products found." })) : (_jsx("div", { className: "product-list grid grid-cols-3 gap-7.5 my-12", children: productCardData.map((product) => (_jsx(ProductCard, { id: product.id, img: product.img, name: product.name, rating: 5, price: (product.price.toString()), originalPrice: product.originalPrice
                         ? Number(product.originalPrice)
                         : undefined, discountPercent: product.discountPercent
                         ? Number(product.discountPercent)

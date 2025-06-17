@@ -47,7 +47,6 @@ const Login: React.FC = () => {
         email: values.email,
         password: values.password,
       });
-      console.log('OKKKKKK');
       
       message.success("Đăng nhập thành công");
       navigate("/");
@@ -69,14 +68,13 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
       <Card
         className="w-full max-w-md shadow-xl rounded-2xl"
-        bodyStyle={{ padding: "32px" }}
       >
         <Space direction="vertical" className="w-full" size="large">
           <div className="text-center mb-4">
             <Title level={3} style={{ marginBottom: 0 }}>
               Đăng nhập tài khoản
             </Title>
-            <Text type="secondary">Chào mừng bạn quay trở lại 👋</Text>
+            <Text type="secondary">Chào mừng bạn quay trở lại</Text>
           </div>
 
           <Form

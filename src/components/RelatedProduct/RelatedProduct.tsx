@@ -47,7 +47,7 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ productId }) => {
               img={product.img}
               name={product.name}
               rating={product.rating}
-              price={Number(product.price)}
+              price={(product.price)}
               originalPrice={Number(product.originalPrice)}
               discountPercent={Number(product.discountPercent)}
             />

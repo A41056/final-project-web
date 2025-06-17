@@ -52,7 +52,13 @@ export const useAuth = () => {
 
     const { token: newToken, refreshToken: newRefreshToken } = response;
 
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
     setTokens(newToken, newRefreshToken);
+
+    if (currentUser) {
+      setUser(currentUser);
+    }
   };
 
   const register = async (credentials: { email: string; password: string }) => {

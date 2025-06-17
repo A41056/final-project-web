@@ -44,6 +44,7 @@ const Cart = () => {
             message.error("Người dùng chưa đăng nhập hoặc giỏ hàng trống.");
             return;
         }
+        console.log(cart.items[0].productName);
         const basketCheckoutDto = {
             UserId: user.id,
             CustomerId: user.id,
@@ -55,6 +56,7 @@ const Cart = () => {
             Country: "Việt Nam",
             Items: cart.items.map((item) => ({
                 ProductId: item.productId,
+                ProductName: item.productName,
                 Quantity: item.quantity,
                 UnitPrice: item.price,
                 VariantProperties: item.variant?.properties?.map((prop) => ({

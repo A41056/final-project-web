@@ -64,12 +64,18 @@ const ReviewTab: React.FC<ReviewTabProps> = ({ productId }) => {
   const createReviewMutation = reviewApi.usePost();
 
   const handleSubmitReview = (values: { rating: number; comment: string }) => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const firstName = user.firstName || "";
+    const lastName = user.lastName || "";
+    const username = `${firstName} ${lastName}`;
+
     createReviewMutation.mutate(
       {
         productId,
         userId,
         rating: values.rating,
         comment: values.comment,
+        username: username,
       },
       {
         onSuccess: () => {
@@ -132,7 +138,15 @@ const ReviewTab: React.FC<ReviewTabProps> = ({ productId }) => {
           <Form.Item
             name="rating"
             label="Điểm đánh giá"
-            rules={[{ required: true, message: "Vui lòng chọn điểm đánh giá" }]}
+            rules={[
+              { required: true, message: "Vui lòng chọn điểm đánh giá" },
+              {
+                type: "number",
+                min: 1,
+                max: 5,
+                message: "Điểm đánh giá phải từ 1 đến 5",
+              },
+            ]}
           >
             <InputNumber min={1} max={5} step={0.5} className="w-full" />
           </Form.Item>
@@ -158,7 +172,7 @@ const ReviewTab: React.FC<ReviewTabProps> = ({ productId }) => {
             <ReviewCard
               key={review.id}
               rating={review.rating}
-              reviewerName={"Ẩn danh"}
+              reviewerName={review.userName || "Ẩn danh"}
               isVerified={true}
               comment={review.comment}
               created={review.created}

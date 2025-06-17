@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { icons } from "../../assets/icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
 import { CartResponse, useCartStore } from "@/stores/cartStore";
 import { basketApi, catalogApi } from "@/config/api";
@@ -19,6 +19,7 @@ const Navbar: React.FC = () => {
   const { itemCount, mergeCart, hasMergedServerCart } = useCartStore();
   const userString = localStorage.getItem("user");
   const user: UserInfo | null = userString ? JSON.parse(userString) : null;
+  const navigate = useNavigate();
 
   const { data: cartData } = basketApi.useGet<CartResponse>(
     user?.id ? `/basket/${user.id}` : "",
@@ -44,6 +45,36 @@ const Navbar: React.FC = () => {
 
   const categoryMenu = <Menu items={categoryMenuItems} mode="vertical" selectable={false} />;
 
+  // ------ Thêm chức năng SEARCH -------
+  const [searchValue, setSearchValue] = useState("");
+  const [searchSubmitted, setSearchSubmitted] = useState(false);
+
+  // Gọi API search khi submit, để Chế dễ debug hoặc lấy suggestion sau này
+  const {
+    data: searchResult,
+    isLoading: isSearching,
+    refetch: refetchSearch,
+  } = catalogApi.useGet<{ products: any[]; totalItems: number }>(
+    "/products/search",
+    { query: searchValue },
+    {
+      enabled: false, // Chỉ gọi khi submit
+      queryKey: ["search-products", searchValue],
+    }
+  );
+
+  const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!searchValue.trim()) return;
+    setSearchSubmitted(true);
+    // Gọi API search (có thể xử lý kết quả ở đây, hoặc chỉ redirect)
+    await refetchSearch();
+    // Sau khi search thành công, redirect tới trang search (searchValue sẽ tự động lên URL)
+    navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+    // Nếu muốn show popup suggestion thay vì chuyển trang, thì xử lý searchResult ở đây
+  };
+  // -----------------------------------
+
   return (
     <>
       {!isAuthenticated && (
@@ -59,7 +90,7 @@ const Navbar: React.FC = () => {
           <ul className="nav_group">
             <li className="logo">
               <Link to="/" aria-label="Go to homepage">
-                SHOP.CO
+                SHOP.COO
               </Link>
             </li>
             <li className="nav_links">
@@ -91,7 +122,7 @@ const Navbar: React.FC = () => {
               </ul>
             </li>
             <li className="search">
-              <form>
+              <form onSubmit={handleSearchSubmit}>
                 <button type="submit">
                   <img src={icons.search} alt="Search" />
                 </button>
@@ -100,7 +131,11 @@ const Navbar: React.FC = () => {
                   id="search"
                   name="q"
                   placeholder="Search for products..."
+                  value={searchValue}
+                  onChange={(e) => setSearchValue(e.target.value)}
+                  autoComplete="off"
                 />
+                {/* Nếu muốn show kết quả nhanh có thể hiển thị searchResult ở đây */}
               </form>
             </li>
             <li className="user_actions">

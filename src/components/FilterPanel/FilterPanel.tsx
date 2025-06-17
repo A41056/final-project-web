@@ -66,7 +66,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
       </div>
       <hr />
 
-      <div className="filter-by-type">
+      {/* <div className="filter-by-type">
         {tags.map((tag) => (
           <div key={tag} className="t-shirt-type">
             <p>{tag}</p>
@@ -75,7 +75,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
       <hr />
 
       <div className="filter-section">

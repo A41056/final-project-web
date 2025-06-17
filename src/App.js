@@ -13,6 +13,7 @@ import Cart from "./pages/Cart/Cart";
 import ConfirmPayment from "./components/ConfirmPayment/ConfirmPayment";
 import CategoryPage from "./pages/CategoryPage/CategoryPage";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import SearchResultPage from "./pages/SearchResultPage/SearchResultPage";
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuthStore();
     if (!isAuthenticated) {
@@ -21,6 +22,6 @@ const ProtectedRoute = ({ children }) => {
     return _jsx(_Fragment, { children: children });
 };
 function App() {
-    return (_jsx(Router, { children: _jsxs("div", { className: "App", children: [_jsx(Navbar, {}), _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(Home, {}) }), _jsx(Route, { path: "/login", element: _jsx(Login, {}) }), _jsx(Route, { path: "/register", element: _jsx(Register, {}) }), _jsx(Route, { path: "/forgot-password", element: _jsx(ForgotPassword, {}) }), _jsx(Route, { path: "/account", element: _jsx(ProtectedRoute, { children: _jsx(Account, {}) }) }), _jsx(Route, { path: "/cart", element: _jsx(Cart, {}) }), _jsx(Route, { path: "/confirm-payment", element: _jsx(ConfirmPayment, {}) }), _jsx(Route, { path: "/products/:id", element: _jsx(ProductDetail, {}) }), _jsx(Route, { path: "/category/:slug", element: _jsx(CategoryPage, {}) })] }), _jsx(Footer, {})] }) }));
+    return (_jsx(Router, { children: _jsxs("div", { className: "App", children: [_jsx(Navbar, {}), _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(Home, {}) }), _jsx(Route, { path: "/login", element: _jsx(Login, {}) }), _jsx(Route, { path: "/register", element: _jsx(Register, {}) }), _jsx(Route, { path: "/forgot-password", element: _jsx(ForgotPassword, {}) }), _jsx(Route, { path: "/account", element: _jsx(ProtectedRoute, { children: _jsx(Account, {}) }) }), _jsx(Route, { path: "/cart", element: _jsx(Cart, {}) }), _jsx(Route, { path: "/confirm-payment", element: _jsx(ConfirmPayment, {}) }), _jsx(Route, { path: "/products/:id", element: _jsx(ProductDetail, {}) }), _jsx(Route, { path: "/category/:slug", element: _jsx(CategoryPage, {}) }), _jsx(Route, { path: "/search", element: _jsx(SearchResultPage, {}) })] }), _jsx(Footer, {})] }) }));
 }
 export default App;

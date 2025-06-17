@@ -2,7 +2,7 @@ import React from "react";
 import { Modal, Button } from "antd";
 
 interface ConfirmModalProps {
-  visible: boolean;
+  open: boolean;
   title: string;
   content: string;
   onConfirm: () => void;
@@ -13,7 +13,7 @@ interface ConfirmModalProps {
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
-  visible,
+  open,
   title,
   content,
   onConfirm,
@@ -24,7 +24,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
   return (
     <Modal
-      visible={visible}
+      open={open}
       title={title}
       onCancel={onCancel}
       footer={[

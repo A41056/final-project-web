@@ -1,21 +1,11 @@
 import React from "react";
 import { icons } from "@/assets/icons";
 import { logo } from "@/assets/logo";
-import ProductCard from "@/components/ProductCard";
+import ProductCard, { ProductCardData } from "@/components/ProductCard";
 import ReviewCard from "@/components/ReviewCard";
-import { fetchWithAuth } from "@/config/api"; // Import fetchWithAuth từ api.ts
+import { fetchWithAuth } from "@/config/api";
 import { useQuery } from "react-query";
 import { Product } from "@/types/product";
-
-interface ProductCardData {
-  id: string;
-  img: string;
-  name: string;
-  rating: number;
-  price: string;
-  originalPrice?: string;
-  discountPercent?: string;
-}
 
 interface ProductResponse {
   products: Product[];
@@ -70,30 +60,42 @@ export const Home = () => {
     },
   });
 
-  const transformProductData = (
-    products: Product[] | undefined
-  ): ProductCardData[] => {
+  const transformProductData = (products: Product[] | undefined): ProductCardData[] => {
     if (!Array.isArray(products)) {
       console.error("Products is not an array:", products);
-      return []; // Trả về mảng rỗng nếu không phải mảng
+      return [];
     }
     return products.map((p) => {
       const prices = p.variants.map((v) => v.price);
+      const discountPrices = p.variants.map((v) => v.discountPrice);
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
+      const minDiscountPrice = Math.min(...discountPrices);
+
       const priceRange =
         prices.length > 1
-          ? `${minPrice.toLocaleString("en-US")} - ${maxPrice.toLocaleString(
-              "en-US"
-            )}`
+          ? `${minPrice.toLocaleString("en-US")} - ${maxPrice.toLocaleString("en-US")}`
           : `${minPrice.toLocaleString("en-US")}`;
+
+      const discountPriceRange =
+        discountPrices.length > 1
+          ? `${minDiscountPrice.toLocaleString("en-US")}`
+          : `${minDiscountPrice.toLocaleString("en-US")}`;
+
+      const originalPrice = maxPrice;  // Chọn giá gốc cao nhất
+      const discountPrice = minDiscountPrice; // Chọn giá giảm thấp nhất
+
+      // Tính tỷ lệ giảm giá
+      const discountPercent = originalPrice && discountPrice ? ((originalPrice - discountPrice) / originalPrice) * 100 : 0;
 
       return {
         id: p.id,
         img: p.imageFiles[0] || "",
         name: p.name,
         rating: p.averageRating || 0,
-        price: priceRange,
+        price: minPrice.toString(),  // Chuyển giá thành string
+        originalPrice,  // Giá cao nhất làm giá gốc
+        discountPercent: Math.round(discountPercent),  // Tỷ lệ giảm giá
       };
     });
   };
@@ -172,18 +174,13 @@ export const Home = () => {
                   img={product.img}
                   name={product.name}
                   rating={product.rating}
-                  price={Number(product.price)}
+                  price={product.price}
                   originalPrice={Number(product.originalPrice)}
                   discountPercent={Number(product.discountPercent)}
                 />
               ))
             )}
           </div>
-        </div>
-        <div className="wrapper_3">
-          <button className="view-all-button">
-            <p>View All</p>
-          </button>
         </div>
         <hr className="break-wrapper" />
         <div className="wrapper_2">
@@ -199,18 +196,13 @@ export const Home = () => {
                   img={product.img}
                   name={product.name}
                   rating={product.rating}
-                  price={Number(product.price)}
+                  price={product.price}
                   originalPrice={Number(product.originalPrice)}
                   discountPercent={Number(product.discountPercent)}
                 />
               ))
             )}
           </div>
-        </div>
-        <div className="wrapper_3">
-          <button className="view-all-button">
-            <p>View All</p>
-          </button>
         </div>
       </div>
 

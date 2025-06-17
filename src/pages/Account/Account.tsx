@@ -1,38 +1,20 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Select, DatePicker, message, Card, Layout, Menu, Avatar, Row, Col } from "antd";
+import { Layout, Menu, Avatar, Row, Col, Card } from "antd";
 import { UserOutlined } from "@ant-design/icons";
-import { useAuthStore } from "@/stores/authStore";
 import { useNavigate } from "react-router-dom";
-import OrderHistoryTab from "@/components/OrderHistoryTab/OrderHistoryTab"; // Import OrderHistoryTab component
-import ChangePassword from "@/components/ChangePassword/ChangePassword";
+import Profile from "@/components/Profile/Profile"; // Import Profile component
 import ShippingAddresses from "@/components/ShippingAddresses/ShippingAddresses";
+import ChangePassword from "../ForgotPassword/ChangePassword";
+import OrderHistoryTab from "@/components/OrderHistoryTab/OrderHistoryTab";
 
-const { Option } = Select;
 const { Sider, Content } = Layout;
 
 const Account: React.FC = () => {
-  const [form] = Form.useForm();
-  const [isEditMode, setIsEditMode] = useState(false);
   const [activeTab, setActiveTab] = useState("profile"); // Track active tab
-  const [userAddresses, setUserAddresses] = useState<string[]>(["123 Main St", "456 Elm St"]);
-  const { user, logout, setUser } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleEditClick = () => {
-    setIsEditMode(true);
-  };
-
-  const handleLogoutConfirm = () => {
-    logout();
-    navigate("/login");
-  };
-
-  const handleAddAddress = () => {
-    const newAddress = prompt("Nhập địa chỉ mới:");
-    if (newAddress) {
-      setUserAddresses([...userAddresses, newAddress]);
-    }
-  };
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userAddresses = user.address || []; // Get user addresses from localStorage
 
   return (
     <Layout style={{ minHeight: "100vh", margin: "0 auto", maxWidth: "70%", borderRadius: "8px" }}>
@@ -81,79 +63,10 @@ const Account: React.FC = () => {
                 padding: "24px",
               }}
             >
-              {activeTab === "profile" && (
-                <Form form={form} layout="vertical">
-                  {/* Profile Form Fields */}
-                  <Row gutter={24}>
-                    <Col span={12}>
-                      <Form.Item name="username" label="Tên đăng nhập">
-                        <Input disabled />
-                      </Form.Item>
-                    </Col>
-
-                    <Col span={12}>
-                      <Form.Item
-                        name="email"
-                        label="Email"
-                        rules={[{ type: "email", required: true, message: "Vui lòng nhập email hợp lệ" }]}
-                      >
-                        <Input disabled={!isEditMode} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Row gutter={24}>
-                    <Col span={12}>
-                      <Form.Item
-                        name="phone"
-                        label="Số điện thoại"
-                        rules={[{ pattern: /^[0-9]{10}$/, message: "Số điện thoại không hợp lệ" }]}
-                      >
-                        <Input disabled={!isEditMode} />
-                      </Form.Item>
-                    </Col>
-
-                    <Col span={12}>
-                      <Form.Item name="address" label="Địa chỉ">
-                        <Input disabled={!isEditMode} />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-
-                  <Form.Item>
-                    {isEditMode ? (
-                      <>
-                        <Button
-                          type="primary"
-                          htmlType="submit"
-                          disabled={false}
-                        >
-                          Lưu thay đổi
-                        </Button>
-                        <Button
-                          style={{ marginLeft: 8 }}
-                          onClick={() => setIsEditMode(false)}
-                        >
-                          Hủy
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button type="default" danger onClick={handleLogoutConfirm}>
-                          Đăng xuất
-                        </Button>
-                      </>
-                    )}
-                  </Form.Item>
-                </Form>
-              )}
-              {activeTab === "shippingAddresses" && <ShippingAddresses addresses={[]} onAddAddress={function (): void {
-                throw new Error("Function not implemented.");
-              } } />}
-
-              {activeTab === "orderHistory" && <OrderHistoryTab />}
-
+              {activeTab === "profile" && <Profile />}
+              {activeTab === "shippingAddresses" && <ShippingAddresses addresses={userAddresses} />}
               {activeTab === "changePassword" && <ChangePassword />}
+              {activeTab === "orderHistory" && <OrderHistoryTab />}
             </Card>
           </Col>
         </Row>

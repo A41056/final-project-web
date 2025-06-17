@@ -36,7 +36,11 @@ export const useAuth = () => {
             body: JSON.stringify({ refreshToken }),
         });
         const { token: newToken, refreshToken: newRefreshToken } = response;
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
         setTokens(newToken, newRefreshToken);
+        if (currentUser) {
+            setUser(currentUser);
+        }
     };
     const register = async (credentials) => {
         const res = await fetch(`${USER_API_URL}/register`, {

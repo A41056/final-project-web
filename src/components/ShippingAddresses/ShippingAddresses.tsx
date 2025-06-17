@@ -1,12 +1,36 @@
-import React from "react";
-import { Card, List, Button } from "antd";
+import React, { useState } from "react";
+import { Card, List, Button, Modal, Input, Form } from "antd";
 
 interface ShippingAddressesProps {
-  addresses: string[];  // List các địa chỉ nhận hàng của người dùng
-  onAddAddress: () => void;  // Hàm xử lý khi thêm địa chỉ mới
+  addresses: string[];
 }
 
-const ShippingAddresses: React.FC<ShippingAddressesProps> = ({ addresses, onAddAddress }) => {
+const ShippingAddresses: React.FC<ShippingAddressesProps> = ({ addresses }) => {
+  const [newAddress, setNewAddress] = useState<string>("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [updatedAddresses, setUpdatedAddresses] = useState<string[]>(addresses);
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    setNewAddress("");
+  };
+
+  const handleAddAddress = () => {
+    if (newAddress.trim() === "") {
+      Modal.error({
+        title: "Thông báo",
+        content: "Địa chỉ không thể để trống.",
+      });
+      return;
+    }
+
+    const updatedList = [...updatedAddresses, newAddress];
+    setUpdatedAddresses(updatedList);
+    localStorage.setItem("user", JSON.stringify({ ...JSON.parse(localStorage.getItem("user") || "{}"), address: updatedList }));
+    setIsModalVisible(false);
+    setNewAddress("");
+  };
+
   return (
     <Card
       title="Địa chỉ nhận hàng"
@@ -19,7 +43,7 @@ const ShippingAddresses: React.FC<ShippingAddressesProps> = ({ addresses, onAddA
       <List
         size="small"
         bordered
-        dataSource={addresses}
+        dataSource={updatedAddresses}
         renderItem={(address, index) => (
           <List.Item key={index}>
             {address}
@@ -28,11 +52,28 @@ const ShippingAddresses: React.FC<ShippingAddressesProps> = ({ addresses, onAddA
       />
       <Button
         type="primary"
-        onClick={onAddAddress}
+        onClick={() => setIsModalVisible(true)}
         style={{ marginTop: "16px", width: "100%" }}
       >
         Thêm địa chỉ mới
       </Button>
+
+      <Modal
+        title="Thêm địa chỉ mới"
+        open={isModalVisible}
+        onOk={handleAddAddress}
+        onCancel={handleCancel}
+      >
+        <Form layout="vertical">
+          <Form.Item label="Địa chỉ mới">
+            <Input
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+              placeholder="Nhập địa chỉ mới"
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Card>
   );
 };

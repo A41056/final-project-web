@@ -7,30 +7,45 @@ import { icons } from "../../assets/icons";
 import ProductCard from "../ProductCard";
 
 interface ProductListProps {
-  slug: string;
+  slug?: string;
+  endpoint?: string;
   filters: any;
+  searchMode?: boolean;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ slug, filters }) => {
+const ProductList: React.FC<ProductListProps> = ({ slug,
+  endpoint,
+  filters,
+  searchMode = false, }) => {
   const [page, setPage] = useState(1);
   const pageSize = 9;
 
+  const apiEndpoint = endpoint
+    ? endpoint
+    : `/products/category-slug/${slug}`;
+
+  const params = {
+    pageNumber: page,
+    pageSize,
+    ...(searchMode ? filters : { ...filters }),
+  };
+
   const { data, isLoading } = catalogApi.useGet<GetProductsResponse>(
-    `/products/category-slug/${slug}`,
+    apiEndpoint,
+    params,
     {
-      pageNumber: page,
-      pageSize,
-      ...filters,
-    },
-    {
-      queryKey: ["products-by-slug", slug, page, filters],
-      enabled: !!slug,
+      queryKey: [apiEndpoint, page, filters],
+      enabled: !!(slug || searchMode),
     }
   );
+
+  console.log(data);
 
   const products = data?.products || [];
   const totalProducts = data?.totalItems || 0;
 
+  console.log(products);
+  
   const productCardData = products.map((product: Product) => ({
     id: product.id,
     img: product.imageFiles[0] || "/placeholder.png",
@@ -73,7 +88,7 @@ const ProductList: React.FC<ProductListProps> = ({ slug, filters }) => {
               img={product.img}
               name={product.name}
               rating={5}
-              price={Number(product.price)}
+              price={(product.price.toString())}
               originalPrice={
                 product.originalPrice
                   ? Number(product.originalPrice)
