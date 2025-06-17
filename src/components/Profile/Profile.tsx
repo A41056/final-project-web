@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Row, Col, Modal } from "antd";
+import { Form, Input, Button, Row, Col, Modal, Select } from "antd";
 import { userApi } from "@/config/api"; // Import API hook
-import ConfirmModal from "@/components/ConfirmModal";  // Import ConfirmModal component
+import ConfirmModal from "@/components/ConfirmModal"; // Import ConfirmModal component
 import { useNavigate } from "react-router-dom";
 
 const Profile: React.FC = () => {
@@ -87,12 +87,16 @@ const Profile: React.FC = () => {
     setIsModalVisible(false); // Just hide the modal
   };
 
+  // const handleChangeLanguage = (value: string) => {
+  //   i18n.changeLanguage(value); // Change language dynamically
+  // };
+
   return (
     <div className="profile-container">
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Row gutter={24}>
           <Col span={12}>
-            <Form.Item name="username" label="Tên tài khoản">
+            <Form.Item name="username" label={"username"}>
               <Input disabled />
             </Form.Item>
           </Col>
@@ -100,8 +104,14 @@ const Profile: React.FC = () => {
           <Col span={12}>
             <Form.Item
               name="email"
-              label="Email"
-              rules={[{ type: "email", required: true, message: "Vui lòng nhập email hợp lệ" }]}
+              label={"email"}
+              rules={[
+                {
+                  type: "email",
+                  required: true,
+                  message: "Vui lòng nhập email hợp lệ",
+                },
+              ]}
             >
               <Input disabled={!isEditMode} />
             </Form.Item>
@@ -112,21 +122,26 @@ const Profile: React.FC = () => {
           <Col span={12}>
             <Form.Item
               name="phone"
-              label="Số điện thoại"
-              rules={[{ pattern: /^[0-9]{10}$/, message: "Số điện thoại không hợp lệ" }]}
+              label={"phone"}
+              rules={[
+                {
+                  pattern: /^[0-9]{10}$/,
+                  message: "Số điện thoại không hợp lệ",
+                },
+              ]}
             >
               <Input disabled={!isEditMode} />
             </Form.Item>
           </Col>
 
           <Col span={12}>
-            <Form.Item name="firstName" label="Họ">
+            <Form.Item name="firstName" label={"firstName"}>
               <Input disabled={!isEditMode} />
             </Form.Item>
           </Col>
 
           <Col span={12}>
-            <Form.Item name="lastName" label="Tên">
+            <Form.Item name="lastName" label={"lastName"}>
               <Input disabled={!isEditMode} />
             </Form.Item>
           </Col>
@@ -136,37 +151,50 @@ const Profile: React.FC = () => {
           {isEditMode ? (
             <>
               <Button type="primary" htmlType="submit">
-                Lưu thay đổi
+                {"saveChanges"}
               </Button>
-              <Button style={{ marginLeft: 8 }} onClick={() => setIsEditMode(false)}>
-                Hủy
+              <Button
+                style={{ marginLeft: 8 }}
+                onClick={() => setIsEditMode(false)}
+              >
+                {"cancel"}
               </Button>
             </>
           ) : (
             <>
               <Button type="default" danger onClick={handleLogoutConfirm}>
-                Đăng xuất
+                {"logout"}
               </Button>
               <Button
                 type="default"
                 style={{ marginLeft: 8 }}
                 onClick={() => setIsEditMode(true)}
               >
-                Chỉnh sửa
+                {"editProfile"}
               </Button>
             </>
           )}
         </Form.Item>
       </Form>
 
+      {/* Language Switcher */}
+      <Select
+        // defaultValue={i18n.language}
+        style={{ width: 120 }}
+        // onChange={handleChangeLanguage}
+      >
+        <Select.Option value="en">English</Select.Option>
+        <Select.Option value="vi">Tiếng Việt</Select.Option>
+      </Select>
+
       <ConfirmModal
         open={isModalVisible}
-        title="Xác nhận đăng xuất"
-        content="Bạn có chắc chắn muốn đăng xuất?"
+        title={"logoutConfirmation"}
+        content={"Bạn có chắc chắn muốn đăng xuất?"}
         onConfirm={onConfirmLogout}
         onCancel={onCancelLogout}
-        confirmText="Đồng ý"
-        cancelText="Hủy"
+        confirmText={"logoutButton"}
+        cancelText={"cancelButton"}
       />
     </div>
   );

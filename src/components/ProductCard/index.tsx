@@ -8,7 +8,7 @@ export interface ProductCardData {
   name: string;
   rating: number;
   price: string;
-  originalPrice?: number;
+  discountPrice?: number;
   discountPercent?: number;
 }
 
@@ -18,9 +18,14 @@ interface ProductCardProps {
   name: string;
   rating: number;
   price: string;
-  originalPrice?: number;
+  discountPrice?: number;
   discountPercent?: number;
 }
+
+const formatCurrency = (value: number | string) => {
+  if (typeof value === "string") value = parseFloat(value);
+  return value.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+};
 
 const ProductCard: React.FC<ProductCardProps> = ({
   id,
@@ -28,16 +33,16 @@ const ProductCard: React.FC<ProductCardProps> = ({
   name,
   rating,
   price,
-  originalPrice,
-  discountPercent
+  discountPrice,
+  discountPercent,
 }) => {
   const navigate = useNavigate();
   const fullStars = Math.floor(rating);
   const hasHalfStar = rating - fullStars >= 0.5;
 
   const calculatedDiscountPercent =
-    originalPrice && Number(price) < originalPrice
-      ? ((originalPrice - Number(price)) / originalPrice) * 100
+    discountPrice && Number(price) > discountPrice
+      ? ((Number(price) - discountPrice) / Number(price)) * 100
       : discountPercent || 0;
 
   const handleClick = () => {
@@ -45,38 +50,42 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <div className="product-card" onClick={handleClick} style={{ cursor: "pointer" }}>
+    <div
+      className="product-card"
+      onClick={handleClick}
+      style={{ cursor: "pointer" }}
+    >
       <div className="product-image">
         <img src={img} alt={name} />
       </div>
 
       <p className="product-name">{name}</p>
 
-      {/* <div className="product-rating">
-        <div className="stars">
-          {Array(fullStars).fill(null).map((_, index) => (
-            <img key={`full-${index}`} src={icons.star} alt="full star" />
-          ))}
-          {hasHalfStar && <img key="half" src={icons.halfStar} alt="half star" />}
-        </div>
-        <span>{rating} / 5</span>
-      </div> */}
-
       <div className="product-pricing">
-        <span className="discount-price" style={{ opacity: originalPrice && Number(price) < originalPrice ? 0.5 : 1 }}>
-          ${price}
+        {discountPrice && Number(price) > discountPrice && (
+          <span
+            className="original-price"
+            style={{ textDecoration: "line-through", color: "#888" }}
+          >
+            {formatCurrency(price)}
+          </span>
+        )}
+
+        <span
+          className="discount-price"
+          style={{
+            opacity: discountPrice && Number(price) > discountPrice ? 1 : 0.5,
+          }}
+        >
+          {formatCurrency(discountPrice || price)}{" "}
         </span>
-        {originalPrice && Number(price) < originalPrice && (
-          <>
-            <span className="original-price" style={{ textDecoration: "line-through", color: "#888" }}>
-              ${originalPrice}
+
+        {discountPrice && Number(price) > discountPrice && (
+          <div className="discount-wrapper">
+            <span className="discount-percent" style={{ color: "red" }}>
+              -{Math.round(calculatedDiscountPercent)}%
             </span>
-            <div className="discount-wrapper">
-              <span className="discount-percent" style={{ color: "red" }}>
-                -{Math.round(calculatedDiscountPercent)}%
-              </span>
-            </div>
-          </>
+          </div>
         )}
       </div>
     </div>

@@ -14,7 +14,7 @@ const mapProductToCardData = (product: Product): ProductCardData => ({
   name: product.name,
   rating: product.averageRating || 0,
   price: String(product.variants?.[0]?.price || 0),
-  originalPrice: product.variants?.[0]?.price || 0,
+  discountPrice: product.variants?.[0]?.discountPrice || 0,
   discountPercent: 0,
 });
 
@@ -29,10 +29,12 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ productId }) => {
     return data.products.map(mapProductToCardData);
   }, [data]);
 
+  console.log(data?.products);
+
   return (
     <div className="you-might-also-like-group w-full">
       <p className="text-5xl font-bold text-center mb-6">You might also like</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {isLoading ? (
           <p className="text-center">Loading related products...</p>
         ) : error ? (
@@ -47,8 +49,8 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ productId }) => {
               img={product.img}
               name={product.name}
               rating={product.rating}
-              price={(product.price)}
-              originalPrice={Number(product.originalPrice)}
+              price={product.price}
+              discountPrice={Number(product.discountPrice)}
               discountPercent={Number(product.discountPercent)}
             />
           ))

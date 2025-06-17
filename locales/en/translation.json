@@ -1,0 +1,15 @@
+{
+  "profile": "Profile",
+  "username": "Username",
+  "email": "Email",
+  "phone": "Phone",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "editProfile": "Edit Profile",
+  "saveChanges": "Save Changes",
+  "cancel": "Cancel",
+  "logout": "Log Out",
+  "logoutConfirmation": "Are you sure you want to log out?",
+  "logoutButton": "Log out",
+  "cancelButton": "Cancel"
+}

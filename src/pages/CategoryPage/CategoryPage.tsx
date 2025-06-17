@@ -11,14 +11,14 @@ const CategoryPage: React.FC = () => {
   return (
     <div className="font-satoshi">
       <div className="px-25 py-5">
-        <div className="container flex flex-row items-start justify-start gap-6 py-5 max-w-full">
+        <div className="container flex flex-row items-start justify-start gap-10 py-5 max-w-full">
           {slug && (
-            <div className="w-full md:w-1/4">
+            <div className="w-full">
               <FilterPanel categorySlug={slug} onFilterChange={setFilters} />
             </div>
           )}
           {slug && (
-            <div className="w-full md:w-3/4">
+            <div className="w-full">
               <ProductList slug={slug} filters={filters} />
             </div>
           )}

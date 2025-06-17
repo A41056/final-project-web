@@ -1,0 +1,15 @@
+{
+  "profile": "Hồ sơ",
+  "username": "Tên tài khoản",
+  "email": "Email",
+  "phone": "Số điện thoại",
+  "firstName": "Họ",
+  "lastName": "Tên",
+  "editProfile": "Chỉnh sửa hồ sơ",
+  "saveChanges": "Lưu thay đổi",
+  "cancel": "Hủy",
+  "logout": "Đăng xuất",
+  "logoutConfirmation": "Bạn có chắc chắn muốn đăng xuất?",
+  "logoutButton": "Đăng xuất",
+  "cancelButton": "Hủy"
+}

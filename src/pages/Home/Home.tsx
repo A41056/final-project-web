@@ -19,7 +19,6 @@ export const Home = () => {
   const oneMonthAgo = new Date();
   oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-  // Fetch New Arrivals
   const { data: newArrivalData, isLoading: newArrivalLoading } = useQuery<
     ProductResponse,
     Error
@@ -42,7 +41,6 @@ export const Home = () => {
     },
   });
 
-  // Fetch Top Selling
   const { data: topSellingData, isLoading: topSellingLoading } = useQuery<
     ProductResponse,
     Error
@@ -60,48 +58,8 @@ export const Home = () => {
     },
   });
 
-  const transformProductData = (products: Product[] | undefined): ProductCardData[] => {
-    if (!Array.isArray(products)) {
-      console.error("Products is not an array:", products);
-      return [];
-    }
-    return products.map((p) => {
-      const prices = p.variants.map((v) => v.price);
-      const discountPrices = p.variants.map((v) => v.discountPrice);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      const minDiscountPrice = Math.min(...discountPrices);
-
-      const priceRange =
-        prices.length > 1
-          ? `${minPrice.toLocaleString("en-US")} - ${maxPrice.toLocaleString("en-US")}`
-          : `${minPrice.toLocaleString("en-US")}`;
-
-      const discountPriceRange =
-        discountPrices.length > 1
-          ? `${minDiscountPrice.toLocaleString("en-US")}`
-          : `${minDiscountPrice.toLocaleString("en-US")}`;
-
-      const originalPrice = maxPrice;  // Chọn giá gốc cao nhất
-      const discountPrice = minDiscountPrice; // Chọn giá giảm thấp nhất
-
-      // Tính tỷ lệ giảm giá
-      const discountPercent = originalPrice && discountPrice ? ((originalPrice - discountPrice) / originalPrice) * 100 : 0;
-
-      return {
-        id: p.id,
-        img: p.imageFiles[0] || "",
-        name: p.name,
-        rating: p.averageRating || 0,
-        price: minPrice.toString(),  // Chuyển giá thành string
-        originalPrice,  // Giá cao nhất làm giá gốc
-        discountPercent: Math.round(discountPercent),  // Tỷ lệ giảm giá
-      };
-    });
-  };
-
-  const newArrivalProducts = transformProductData(newArrivalData?.products);
-  const topSelling = transformProductData(topSellingData?.products);
+  const newArrivalProducts = newArrivalData?.products;
+  const topSelling = topSellingData?.products;
 
   return (
     <div>
@@ -167,16 +125,22 @@ export const Home = () => {
             {newArrivalLoading ? (
               <p>Loading new arrivals...</p>
             ) : (
-              newArrivalProducts.map((product, index) => (
+              newArrivalProducts?.map((product, index) => (
                 <ProductCard
                   key={index}
                   id={product.id}
-                  img={product.img}
+                  img={product.imageFiles[0]}
                   name={product.name}
-                  rating={product.rating}
-                  price={product.price}
-                  originalPrice={Number(product.originalPrice)}
-                  discountPercent={Number(product.discountPercent)}
+                  rating={product.averageRating}
+                  price={String(product.variants[0]?.price || 0)}
+                  discountPrice={product.variants[0]?.discountPrice || 0}
+                  discountPercent={Number(
+                    (
+                      ((product.variants[0]?.price || 0) -
+                        (product.variants[0]?.discountPrice || 0)) /
+                      (product.variants[0]?.price || 0)
+                    ).toFixed(0)
+                  )}
                 />
               ))
             )}
@@ -189,16 +153,22 @@ export const Home = () => {
             {topSellingLoading ? (
               <p>Loading top selling...</p>
             ) : (
-              topSelling.map((product, index) => (
+              topSelling?.map((product, index) => (
                 <ProductCard
                   key={index}
                   id={product.id}
-                  img={product.img}
+                  img={product.imageFiles[0]}
                   name={product.name}
-                  rating={product.rating}
-                  price={product.price}
-                  originalPrice={Number(product.originalPrice)}
-                  discountPercent={Number(product.discountPercent)}
+                  rating={product.averageRating}
+                  price={String(product.variants[0]?.price || 0)}
+                  discountPrice={product.variants[0]?.discountPrice || 0}
+                  discountPercent={Number(
+                    (
+                      ((product.variants[0]?.price || 0) -
+                        (product.variants[0]?.discountPrice || 0)) /
+                      (product.variants[0]?.price || 0)
+                    ).toFixed(0)
+                  )}
                 />
               ))
             )}
@@ -237,21 +207,21 @@ export const Home = () => {
             reviewerName="Sarah M."
             isVerified={true}
             comment="I'm blown away by the quality and style of the clothes I received from Shop.co. From casual wear to elegant dresses, every piece I've bought has exceeded my expectations."
-            created= "01/01/2025"
+            created="01/01/2025"
           />
           <ReviewCard
             rating={5}
             reviewerName="Alex K."
             isVerified={true}
             comment="Finding clothes that align with my personal style used to be a challenge until I discovered Shop.co. The range of options they offer is truly remarkable, catering to a variety of tastes and occasions."
-            created= "01/01/2025"
+            created="01/01/2025"
           />
           <ReviewCard
             rating={5}
             reviewerName="James L."
             isVerified={true}
             comment="As someone who's always on the lookout for unique fashion pieces, I'm thrilled to have stumbled upon Shop.co. The selection of clothes is not only diverse but also on-point with the latest trends."
-            created = "01/01/2025"
+            created="01/01/2025"
           />
         </div>
       </div>

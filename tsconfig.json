@@ -1,19 +1,7 @@
 {
-  "compilerOptions": {
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["react", "react-dom"],
-    "target": "ESNext",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "esModuleInterop": true,
-    "strict": true,
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  },
-  "include": ["src/**/*", "global.d.ts"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

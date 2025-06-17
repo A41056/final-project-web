@@ -13,16 +13,16 @@ interface ProductListProps {
   searchMode?: boolean;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ slug,
+const ProductList: React.FC<ProductListProps> = ({
+  slug,
   endpoint,
   filters,
-  searchMode = false, }) => {
+  searchMode = false,
+}) => {
   const [page, setPage] = useState(1);
   const pageSize = 9;
 
-  const apiEndpoint = endpoint
-    ? endpoint
-    : `/products/category-slug/${slug}`;
+  const apiEndpoint = endpoint ? endpoint : `/products/category-slug/${slug}`;
 
   const params = {
     pageNumber: page,
@@ -45,18 +45,21 @@ const ProductList: React.FC<ProductListProps> = ({ slug,
   const totalProducts = data?.totalItems || 0;
 
   console.log(products);
-  
+
   const productCardData = products.map((product: Product) => ({
     id: product.id,
     img: product.imageFiles[0] || "/placeholder.png",
     name: product.name,
     rating: product.averageRating,
     price: product.variants[0]?.price || 0,
-    originalPrice:
-      product.variants[0]?.price < 100
-        ? (product.variants[0]?.price * 1.25).toFixed(2)
-        : undefined,
-    discountPercent: product.variants[0]?.price < 100 ? "20" : undefined,
+    discountPrice: product.variants[0]?.discountPrice
+      ? product.variants[0]?.discountPrice
+      : undefined,
+    discountPercent: product.variants[0]?.discountPrice
+      ? ((product.variants[0]?.price - product.variants[0]?.discountPrice) /
+          product.variants[0]?.price) *
+        100
+      : undefined,
   }));
 
   return (
@@ -88,10 +91,10 @@ const ProductList: React.FC<ProductListProps> = ({ slug,
               img={product.img}
               name={product.name}
               rating={5}
-              price={(product.price.toString())}
-              originalPrice={
-                product.originalPrice
-                  ? Number(product.originalPrice)
+              price={product.price.toString()}
+              discountPrice={
+                product.discountPrice
+                  ? Number(product.discountPrice)
                   : undefined
               }
               discountPercent={

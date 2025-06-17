@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { icons } from "../../assets/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/authStore";
-import { CartResponse, useCartStore } from "@/stores/cartStore";
+import { type CartResponse, useCartStore } from "@/stores/cartStore";
 import { basketApi, catalogApi } from "@/config/api";
-import { UserInfo } from "@/types/user";
+import type { UserInfo } from "@/types/user";
 import { Dropdown, Menu } from "antd";
 
 type CategoryDto = {
@@ -32,18 +32,27 @@ const Navbar: React.FC = () => {
     }
   }, [isAuthenticated, cartData, mergeCart, hasMergedServerCart]);
 
-  const { data: categoryTree } = catalogApi.useGet<CategoryDto[]>("/categories/tree");
+  const { data: categoryTree } =
+    catalogApi.useGet<CategoryDto[]>("/categories/tree");
 
-  const renderCategoryMenuItems = (categories: CategoryDto[]): Parameters<typeof Menu>[0]["items"] =>
+  const renderCategoryMenuItems = (
+    categories: CategoryDto[]
+  ): Parameters<typeof Menu>[0]["items"] =>
     categories.map((cat) => ({
       key: cat.id,
       label: <Link to={`/category/${cat.slug}`}>{cat.name}</Link>,
-      children: cat.subcategories?.length ? renderCategoryMenuItems(cat.subcategories) : undefined,
+      children: cat.subcategories?.length
+        ? renderCategoryMenuItems(cat.subcategories)
+        : undefined,
     }));
 
-  const categoryMenuItems = categoryTree?.[0] ? renderCategoryMenuItems(categoryTree[0].subcategories) : [];
+  const categoryMenuItems = categoryTree?.[0]
+    ? renderCategoryMenuItems(categoryTree[0].subcategories)
+    : [];
 
-  const categoryMenu = <Menu items={categoryMenuItems} mode="vertical" selectable={false} />;
+  const categoryMenu = (
+    <Menu items={categoryMenuItems} mode="vertical" selectable={false} />
+  );
 
   // ------ Thêm chức năng SEARCH -------
   const [searchValue, setSearchValue] = useState("");
@@ -80,7 +89,11 @@ const Navbar: React.FC = () => {
       {!isAuthenticated && (
         <aside className="promo-bar">
           <p>Sign up and get 20% off to your first order.</p>
-          <Link to="/register" aria-label="Go to register" className="text-white">
+          <Link
+            to="/register"
+            aria-label="Go to register"
+            className="text-white"
+          >
             Sign Up Now
           </Link>
         </aside>
@@ -90,7 +103,7 @@ const Navbar: React.FC = () => {
           <ul className="nav_group">
             <li className="logo">
               <Link to="/" aria-label="Go to homepage">
-                SHOP.COO
+                SHOP.CO
               </Link>
             </li>
             <li className="nav_links">
@@ -105,7 +118,11 @@ const Navbar: React.FC = () => {
                       overlayClassName="category-dropdown-menu"
                     >
                       <span
-                        style={{ display: "inline-flex", alignItems: "center", cursor: "pointer" }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                        }}
                         aria-haspopup="true"
                         aria-expanded="false"
                       >
@@ -113,7 +130,12 @@ const Navbar: React.FC = () => {
                         <img
                           src={icons.downArrow}
                           alt="Expand shop menu"
-                          style={{ marginLeft: 6, width: 12, height: 12, userSelect: "none" }}
+                          style={{
+                            marginLeft: 6,
+                            width: 12,
+                            height: 12,
+                            userSelect: "none",
+                          }}
                         />
                       </span>
                     </Dropdown>

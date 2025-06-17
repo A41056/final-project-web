@@ -15,9 +15,14 @@ interface FilterPanelProps {
   onFilterChange: (filters: any) => void;
 }
 
-const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange }) => {
+const FilterPanel: React.FC<FilterPanelProps> = ({
+  categorySlug,
+  onFilterChange,
+}) => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
-  const [selectedProperties, setSelectedProperties] = useState<Record<string, string>>({});
+  const [selectedProperties, setSelectedProperties] = useState<
+    Record<string, string>
+  >({});
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     price: true,
   });
@@ -64,7 +69,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
           <img src={icons.filter} alt="Filter" />
         </div>
       </div>
-      <hr />
+      {/* <hr /> */}
 
       {/* <div className="filter-by-type">
         {tags.map((tag) => (
@@ -76,7 +81,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
           </div>
         ))}
       </div> */}
-      <hr />
+      {/* <hr /> */}
 
       <div className="filter-section">
         <div
@@ -88,7 +93,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
           <div
             className="filter-image"
             style={{
-              transform: openSections.price ? "rotate(0deg)" : "rotate(-90deg)",
+              transform: openSections.price ? "rotate(0deg)" : "rotate(90deg)",
               transition: "transform 0.3s",
             }}
           >
@@ -127,7 +132,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({ categorySlug, onFilterChange 
             <div
               className="filter-image"
               style={{
-                transform: openSections[key] ? "rotate(0deg)" : "rotate(-90deg)",
+                transform: openSections[key] ? "rotate(0deg)" : "rotate(90deg)",
                 transition: "transform 0.3s",
               }}
             >
